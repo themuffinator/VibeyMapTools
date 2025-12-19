@@ -235,6 +235,7 @@ public:
     setting_bool logbmodels;
     setting_bool debug_missing_portal_sides;
     setting_bool fixupdetailfence;
+    setting_bool tjunc_detail;
 
     void set_parameters(int argc, const char **argv) override;
     void initialize(int argc, const char **argv) override;

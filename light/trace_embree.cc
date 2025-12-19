@@ -20,6 +20,7 @@
 #include <light/trace_embree.hh>
 
 #include <light/light.hh>
+#include <light/lightcontext.hh>
 #include <light/trace.hh> // for SampleTexture
 
 #include <common/bsputils.hh>
@@ -71,6 +72,7 @@ const std::set<const mface_t *> &ShadowCastingSolidFacesSet()
  */
 static float Face_Alpha(const mbsp_t *bsp, const modelinfo_t *modelinfo, const mface_t *face)
 {
+    const auto &extended_texinfo_flags = g_ctx->extended_texinfo_flags;
     const surfflags_t &extended_flags = extended_texinfo_flags[face->texinfo];
     const int surf_flags = Face_ContentsOrSurfaceFlags(bsp, face);
     const bool is_q2 = bsp->loadversion->game->id == GAME_QUAKE_II;
@@ -651,7 +653,7 @@ void Embree_TraceInit(const mbsp_t *bsp)
 
     /* Special handling of skip-textured bmodels */
     std::vector<polylib::winding3f_t> skipwindings;
-    for (const modelinfo_t *modelinfo : tracelist) {
+    for (const modelinfo_t *modelinfo : g_ctx->tracelist) {
         if (modelinfo->model->numfaces == 0) {
             MakeFaces(bsp, modelinfo, modelinfo->model, skipwindings);
         }
@@ -713,9 +715,9 @@ static void AddGlassToRay(ray_source_info *ctx, unsigned rayIndex, float opacity
 
     ray_io &ray = rs->getRay(rayIndex);
 
-    ray.hit_glass = true;
-    ray.glass_color = glasscolor;
-    ray.glass_opacity = opacity;
+    ray.payload.hit_glass = true;
+    ray.payload.glass_color = glasscolor;
+    ray.payload.glass_opacity = opacity;
 }
 
 static void AddDynamicOccluderToRay(ray_source_info *ctx, unsigned rayIndex, int style)
@@ -724,7 +726,7 @@ static void AddDynamicOccluderToRay(ray_source_info *ctx, unsigned rayIndex, int
 
     if (rs != nullptr) {
         ray_io &ray = rs->getRay(rayIndex);
-        ray.dynamic_style = style;
+        ray.payload.dynamic_style = style;
     }
 }
 

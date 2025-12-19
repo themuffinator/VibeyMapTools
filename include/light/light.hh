@@ -436,6 +436,11 @@ public:
     setting_func debugmottle;
     setting_bool debug_lightgrid_octree;
 
+    setting_bool incremental;
+    setting_bool denoise;
+    setting_bool gpu;
+    setting_bool stochastic;
+
     light_settings();
 
     fs::path sourceMap;
@@ -460,11 +465,22 @@ const std::unordered_map<int, std::vector<uint8_t>> &UncompressedVis();
 
 bool IsOutputtingSupplementaryData();
 
+// Context
+namespace vibey
+{
+namespace light
+{
+struct LightContext;
+}
+} // namespace vibey
+extern vibey::light::LightContext *g_ctx;
+
 std::span<lightsurf_t> &LightSurfaces();
 std::vector<lightsurf_t *> &EmissiveLightSurfaces();
 
-extern std::vector<surfflags_t> extended_texinfo_flags;
-extern std::vector<contentflags_t> extended_content_flags;
+// Legacy accessor macros or functions could go here, but we will update call sites.
+// extern std::vector<surfflags_t> extended_texinfo_flags; // Moved to context
+// extern std::vector<contentflags_t> extended_content_flags; // Moved to context
 
 lightmap_t *Lightmap_ForStyle(lightmapdict_t *lightmaps, const int style, const lightsurf_t *lightsurf);
 

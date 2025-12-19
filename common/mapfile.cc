@@ -10,7 +10,10 @@ namespace mapfile
 /*static*/ bool brush_side_t::is_valid_texture_projection(
     const qvec3f &faceNormal, const qvec3f &s_vec, const qvec3f &t_vec)
 {
-    // TODO: This doesn't match how light does it (TexSpaceToWorld)
+    // Verify that the texture space basis (s, t, normal) is linearly independent.
+    // If the texture normal (cross(s,t)) is perpendicular to the face normal,
+    // the basis is singular and the projection is invalid.
+    // This matches the invertibility requirement of TexSpaceToWorld in bsputils.cc.
 
     const qvec3f tex_normal = qv::normalize(qv::cross(s_vec, t_vec));
 
@@ -512,7 +515,9 @@ void brush_side_t::write_texinfo(std::ostream &stream, const texdef_etp_t &texde
 
 void brush_side_t::write_texinfo(std::ostream &stream, const texdef_bp_t &texdef)
 {
-    FError("todo bp");
+    ewt::print(stream, "( ( {} {} {} ) ( {} {} {} ) )", texdef.axis.at(0, 0), texdef.axis.at(0, 1),
+        texdef.axis.at(0, 2), texdef.axis.at(1, 0), texdef.axis.at(1, 1), texdef.axis.at(1, 2));
+    write_extended_info(stream);
 }
 
 void brush_side_t::write(std::ostream &stream)

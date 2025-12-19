@@ -1,7 +1,14 @@
 cmake_minimum_required (VERSION 3.14)
-cmake_policy(SET CMP0028 NEW)
 
-project (ericw-tools)
+# Read version from VERSION file
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VIBEY_VERSION_RAW)
+string(STRIP "${VIBEY_VERSION_RAW}" VIBEY_VERSION_STRING)
+string(REPLACE "." ";" VIBEY_VERSION_PARTS "${VIBEY_VERSION_STRING}")
+list(GET VIBEY_VERSION_PARTS 0 VIBEY_VERSION_MAJOR)
+list(GET VIBEY_VERSION_PARTS 1 VIBEY_VERSION_MINOR)
+list(GET VIBEY_VERSION_PARTS 2 VIBEY_VERSION_PATCH)
+
+project (VibeyMapTools VERSION ${VIBEY_VERSION_STRING})
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/3rdparty/Catch2/extras")
@@ -15,6 +22,17 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 message(STATUS "git describe returned \"${GIT_DESCRIBE}\"")
+
+# Set version variables for configure_file
+set(VIBEY_VERSION_GIT "${GIT_DESCRIBE}")
+if(GIT_DESCRIBE)
+    set(VIBEY_VERSION_FULL "${VIBEY_VERSION_STRING}-${GIT_DESCRIBE}")
+else()
+    set(VIBEY_VERSION_FULL "${VIBEY_VERSION_STRING}")
+endif()
+
+# Build date
+string(TIMESTAMP VIBEY_BUILD_DATE "%Y-%m-%d")
 
 # git describe fails on GitHub Actions
 if(NOT GIT_DESCRIBE)
@@ -59,7 +77,15 @@ if (UNIX AND NOT APPLE)
 	set(CMAKE_BUILD_WITH_INSTALL_RPATH YES)
 endif ()
 
-add_definitions(-DERICWTOOLS_VERSION="${GIT_DESCRIBE}")
+add_definitions(-DVIBEYMAPTOOLS_VERSION="${VIBEY_VERSION_FULL}")
+
+# Configure version header
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hh.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/include/version.hh"
+    @ONLY
+)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
 
 # MINGW stuff
 if(MINGW)
@@ -130,14 +156,14 @@ if (WIN32)
 	endif (MSVC)
 endif (WIN32)
 
-# Pass -DERICWTOOLS_ASAN=YES to enable for all targets
-if (ERICWTOOLS_ASAN)
+# Pass -DVIBEYMAPTOOLS_ASAN=YES to enable for all targets
+if (VIBEYMAPTOOLS_ASAN)
 	message(STATUS "Enabling ASan on all targets")
 	add_compile_options(-fsanitize=address)
 	add_link_options(-fsanitize=address)
 endif()
 
-if (ERICWTOOLS_TIMETRACE)
+if (VIBEYMAPTOOLS_TIMETRACE)
 	message(STATUS "Enabling -ftime-trace")
 	add_compile_options(-ftime-trace)
 endif()
@@ -196,7 +222,7 @@ install(FILES README.md DESTINATION .)
 #CPack configuration
 
 set(CPACK_GENERATOR ZIP)
-set(CPACK_PACKAGE_NAME ericw-tools)
+set(CPACK_PACKAGE_NAME VibeyMapTools)
 set(CPACK_PACKAGE_VERSION ${GIT_DESCRIBE})
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
 include(CPack)

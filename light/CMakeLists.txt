@@ -12,6 +12,7 @@ set(LIGHT_INCLUDES
 	../include/light/trace.hh
 	../include/light/write.hh
 	../include/light/spatialindex.hh
+	../include/light/vibey_api.hh
 )
 
 set(LIGHT_SOURCES
@@ -25,6 +26,7 @@ set(LIGHT_SOURCES
 	surflight.cc
 	write.cc
 	spatialindex.cc
+	vibey_api.cc
 	${LIGHT_INCLUDES}
 )
 
@@ -45,12 +47,50 @@ if (embree_FOUND)
 	endif ()
 endif(embree_FOUND)
 
+find_package(CUDAToolkit)
+if(CUDAToolkit_FOUND)
+    message(STATUS "CUDA found. Checking for OptiX...")
+    
+    # Simple check or manual variable
+    set(OPTIX_INCLUDE_DIR "$ENV{OPTIX_ROOT_DIR}/include" CACHE PATH "Path to OptiX include directory")
+    
+    if(EXISTS "${OPTIX_INCLUDE_DIR}/optix.h")
+        message(STATUS "OptiX found at ${OPTIX_INCLUDE_DIR}")
+        include_directories(${OPTIX_INCLUDE_DIR} ${CUDAToolkit_INCLUDE_DIRS})
+        add_definitions(-DHAVE_OPTIX)
+        
+        # Add trace_optix.cc
+        set(LIGHT_SOURCES ${LIGHT_SOURCES} trace_optix.cc)
+        
+        # PTX Generation Rule (Simplified)
+        # In a real setup, use standard cuda_add_library or similar, but we need .ptx content embedded or loaded
+        # For now, we will assume headers are enough to compile host code.
+        # The .cu file compilation is tricky without full setup. 
+        # We will add it to sources if possible or leave it manual.
+        
+        # Link CUDA
+        target_link_libraries(liblight PRIVATE CUDA::cudart)
+    else()
+        message(WARNING "OptiX headers not found. trace_optix.cc will not be compiled.")
+    endif()
+endif()
+
 add_library(liblight STATIC ${LIGHT_SOURCES})
+
+# OIDN Integration
+find_package(OpenImageDenoise QUIET)
+if(OpenImageDenoise_FOUND)
+    message(STATUS "Intel OIDN found. Enabling AI denoising.")
+    target_link_libraries(liblight PRIVATE OpenImageDenoise)
+    target_compile_definitions(liblight PRIVATE HAVE_OIDN)
+else()
+    message(STATUS "Intel OIDN not found. AI denoising disabled.")
+endif()
 
 target_link_libraries(liblight PRIVATE common ${CMAKE_THREAD_LIBS_INIT} fmt::fmt jsoncpp_static)
 
-add_executable(light main.cc)
-target_link_libraries(light PRIVATE common liblight)
+add_executable(vmt-light main.cc)
+target_link_libraries(vmt-light PRIVATE common liblight)
 
 if (embree_FOUND)
 	target_link_libraries (liblight PRIVATE embree)
@@ -81,19 +121,19 @@ if (embree_FOUND)
 		message(STATUS "Found embree EMBREE_TBB_DLL: ${EMBREE_TBB_DLL}")
 	endif()
 
-	add_custom_command(TARGET light POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:embree>"   "$<TARGET_FILE_DIR:light>"
-                       COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbb>" "$<TARGET_FILE_DIR:light>"
-					   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbbmalloc>" "$<TARGET_FILE_DIR:light>"
+	add_custom_command(TARGET vmt-light POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:embree>"   "$<TARGET_FILE_DIR:vmt-light>"
+                       COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbb>" "$<TARGET_FILE_DIR:vmt-light>"
+					   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbbmalloc>" "$<TARGET_FILE_DIR:vmt-light>"
 					   )
 
 	if (NOT EMBREE_LICENSE STREQUAL EMBREE_LICENSE-NOTFOUND)
-		add_custom_command(TARGET light POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EMBREE_LICENSE}"       "$<TARGET_FILE_DIR:light>/LICENSE-embree.txt")
+		add_custom_command(TARGET vmt-light POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EMBREE_LICENSE}"       "$<TARGET_FILE_DIR:vmt-light>/LICENSE-embree.txt")
 	endif()
 	if (NOT EMBREE_TBB_DLL STREQUAL EMBREE_TBB_DLL-NOTFOUND)
-		add_custom_command(TARGET light POST_BUILD
-				           COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EMBREE_TBB_DLL}" "$<TARGET_FILE_DIR:light>")
+		add_custom_command(TARGET vmt-light POST_BUILD
+				           COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EMBREE_TBB_DLL}" "$<TARGET_FILE_DIR:vmt-light>")
 	endif()
 
 	if(NOT SKIP_EMBREE_INSTALL)
@@ -142,8 +182,8 @@ if (embree_FOUND)
 	endif()
 endif(embree_FOUND)
 
-copy_mingw_dlls(light)
-add_loader_path_to_rpath(light)
+copy_mingw_dlls(vmt-light)
+add_loader_path_to_rpath(vmt-light)
 
-install(TARGETS light RUNTIME DESTINATION .)
+install(TARGETS vmt-light RUNTIME DESTINATION .)
 install(FILES ../gpl_v3.txt DESTINATION .)

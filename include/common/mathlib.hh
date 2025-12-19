@@ -54,7 +54,7 @@ constexpr double POINT_EQUAL_EPSILON = 0.05;
 constexpr double NORMAL_EPSILON = 0.000001;
 constexpr double DIST_EPSILON = 0.0001;
 constexpr double DEGREES_EPSILON = 0.001;
-constexpr double DEFAULT_ON_EPSILON = 0.1;
+constexpr double DEFAULT_ON_EPSILON = 0.05;
 
 /*
  * The quality of the bsp output is highly sensitive to these epsilon values.

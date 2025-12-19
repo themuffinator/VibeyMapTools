@@ -1,0 +1,105 @@
+name: Release Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: 'Pre-release tag (empty for stable)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  bump-version:
+    name: Bump Version and Create Tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        id: bump
+        run: |
+          CURRENT_VERSION=$(cat VERSION | tr -d '\n\r')
+          IFS='.' read -ra PARTS <<< "$CURRENT_VERSION"
+          MAJOR="${PARTS[0]}"
+          MINOR="${PARTS[1]}"
+          PATCH="${PARTS[2]}"
+          
+          case "${{ inputs.version_bump }}" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          
+          if [[ -n "${{ inputs.prerelease }}" ]]; then
+            TAG_VERSION="$NEW_VERSION-${{ inputs.prerelease }}"
+          else
+            TAG_VERSION="$NEW_VERSION"
+          fi
+          
+          echo "$NEW_VERSION" > VERSION
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "Bumped version: $CURRENT_VERSION -> $TAG_VERSION"
+
+      - name: Update CHANGELOG.md
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          VERSION="${{ steps.bump.outputs.tag_version }}"
+          
+          # Replace "Unreleased" with version and date
+          sed -i "s/## 2.1.0 (Unreleased)/## $VERSION ($DATE)/" CHANGELOG.md
+          
+          # Add new Unreleased section
+          sed -i "1a\\n## Unreleased\\n" CHANGELOG.md
+
+      - name: Commit version bump
+        run: |
+          git add VERSION CHANGELOG.md
+          git commit -m "chore: bump version to ${{ steps.bump.outputs.tag_version }}"
+          git push
+
+      - name: Create and push tag
+        run: |
+          git tag -a "v${{ steps.bump.outputs.tag_version }}" -m "Release v${{ steps.bump.outputs.tag_version }}"
+          git push origin "v${{ steps.bump.outputs.tag_version }}"
+
+      - name: Summary
+        run: |
+          echo "## Version Bump Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- New version: **${{ steps.bump.outputs.tag_version }}**" >> $GITHUB_STEP_SUMMARY
+          echo "- Tag: **v${{ steps.bump.outputs.tag_version }}**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The CI workflow will now build and create the release." >> $GITHUB_STEP_SUMMARY

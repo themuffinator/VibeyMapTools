@@ -734,6 +734,14 @@ void MainWindow::loadFile(const QString &file)
     // start watching it
     qDebug() << "adding path: " << m_watcher->addPath(file);
 
+    // Also watch the .lit file
+    QString litFile = QFileInfo(file).path() + "/" + QFileInfo(file).completeBaseName() + ".lit";
+    if (QFileInfo::exists(litFile)) {
+        qDebug() << "adding lit path: " << m_watcher->addPath(litFile);
+    } else {
+        qDebug() << "lit file not found: " << litFile;
+    }
+
     connect(m_watcher, &QFileSystemWatcher::fileChanged, this, [&](const QString &path) {
         qDebug() << "got change notif for " << m_mapFile;
 

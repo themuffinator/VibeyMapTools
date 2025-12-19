@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'ericw-tools'
+project = 'VibeyMapTools'
 
 # -- General configuration ---------------------------------------------------
 
@@ -25,7 +25,7 @@ project = 'ericw-tools'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'ericw-tools',
+    'VibeyMapTools',
     'sphinx.ext.todo'
 ]
 

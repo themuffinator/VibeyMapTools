@@ -1,0 +1,213 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  # ==========================================================================
+  # Version Extraction
+  # ==========================================================================
+  version:
+    name: Extract Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version_full: ${{ steps.version.outputs.version_full }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get version from VERSION file
+        id: version
+        run: |
+          VERSION=$(cat VERSION | tr -d '\n\r')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+            echo "version_full=$TAG_VERSION" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/heads/* ]]; then
+            BRANCH="${GITHUB_REF#refs/heads/}"
+            SHORT_SHA="${GITHUB_SHA::7}"
+            echo "version_full=$VERSION-$BRANCH-$SHORT_SHA" >> $GITHUB_OUTPUT
+          else
+            echo "version_full=$VERSION-dev" >> $GITHUB_OUTPUT
+          fi
+
+  # ==========================================================================
+  # Build Jobs
+  # ==========================================================================
+  build:
+    name: Build (${{ matrix.os }})
+    needs: version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            artifact_name: vibeymaptools-linux
+            archive_ext: .tar.gz
+          - os: windows-2022
+            artifact_name: vibeymaptools-windows
+            archive_ext: .zip
+          - os: macos-14
+            artifact_name: vibeymaptools-macos
+            archive_ext: .tar.gz
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      # ---- Linux Setup ----
+      - name: 'Linux: Install dependencies'
+        if: startsWith(matrix.os, 'ubuntu-')
+        run: |
+          sudo apt update
+          sudo apt install -y qt6-base-dev libgl1-mesa-dev libtbb-dev libembree-dev
+
+      # ---- macOS Setup ----
+      - name: 'macOS: Install Qt6'
+        if: startsWith(matrix.os, 'macos-')
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.4.3
+
+      - name: 'macOS: Install dependencies'
+        if: startsWith(matrix.os, 'macos-')
+        run: |
+          brew install tbb embree
+
+      # ---- Windows Setup ----
+      - name: 'Windows: Setup MSVC'
+        if: startsWith(matrix.os, 'windows-')
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: 'Windows: Install Qt6'
+        if: startsWith(matrix.os, 'windows-')
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.7.0
+
+      # ---- Build ----
+      - name: Configure CMake
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+      - name: Build
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Run Tests
+        run: ctest --test-dir build --output-on-failure --build-config ${{ env.BUILD_TYPE }}
+
+      - name: Package
+        run: cmake --build build --target package --config ${{ env.BUILD_TYPE }}
+
+      # ---- Upload Artifacts ----
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}-${{ needs.version.outputs.version_full }}
+          path: build/VibeyMapTools-*${{ matrix.archive_ext }}
+          if-no-files-found: warn
+
+  # ==========================================================================
+  # Release Job
+  # ==========================================================================
+  release:
+    name: Create Release
+    needs: [version, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate Release Notes
+        id: notes
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          cat << 'EOF' > release_notes.md
+          # VibeyMapTools ${{ needs.version.outputs.version }}
+          
+          ## Downloads
+          
+          | Platform | Download |
+          |----------|----------|
+          | Windows | `vibeymaptools-windows-${{ needs.version.outputs.version_full }}.zip` |
+          | Linux | `vibeymaptools-linux-${{ needs.version.outputs.version_full }}.tar.gz` |
+          | macOS | `vibeymaptools-macos-${{ needs.version.outputs.version_full }}.tar.gz` |
+          
+          ## What's New
+          
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+          
+          ## Features
+          
+          - GPU-accelerated raytracing (OptiX)
+          - Intel OIDN denoising
+          - Stochastic light sampling
+          - Incremental lighting
+          - HDR lightmap support
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: VibeyMapTools ${{ needs.version.outputs.version }}
+          body_path: release_notes.md
+          draft: true
+          prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') }}
+          files: |
+            artifacts/**/*
+
+  # ==========================================================================
+  # Nightly Build
+  # ==========================================================================
+  nightly:
+    name: Nightly Build
+    if: github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Update Nightly Release
+        uses: andelf/nightly-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly
+          name: 'Nightly Build'
+          prerelease: true
+          body: |
+            Automated nightly build from main branch.
+            Version: ${{ needs.version.outputs.version_full }}
+            Commit: ${{ github.sha }}
+          files: |
+            artifacts/**/*

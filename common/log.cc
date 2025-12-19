@@ -87,7 +87,7 @@ void init(std::optional<fs::path> filename, const settings::common_settings &set
 
     if (logfile) {
         print(flag::PROGRESS, "logging to {} ({})\n", p.string(), settings.logappend.value() ? "append" : "truncate");
-        fmt::print(logfile, "---- {} / ericw-tools {} ----\n", settings.program_name, ERICWTOOLS_VERSION);
+        fmt::print(logfile, "---- {} / VibeyMapTools {} ----\n", settings.program_name, VIBEYMAPTOOLS_VERSION);
     } else {
         print(flag::PROGRESS, "WARNING: can't log to {}\n", p.string());
     }

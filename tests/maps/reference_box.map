@@ -1,0 +1,60 @@
+// Game: Quake 2
+// Format: Valve
+{
+"classname" "worldspawn"
+"message" "Regression Test Box"
+"_ambient" "10"
+}
+{
+"classname" "info_player_start"
+"origin" "0 0 64"
+"angle" "90"
+}
+// Floor
+{
+"classname" "func_group"
+( -128 -128 0 ) ( -128 128 0 ) ( 128 128 0 ) __TB_empty [ 0 0 1 0 ] [ 0 -1 0 0 ] 0 1 1
+}
+// Ceiling
+{
+"classname" "func_group"
+( -128 128 256 ) ( -128 -128 256 ) ( 128 -128 256 ) __TB_empty [ 0 0 1 0 ] [ 0 -1 0 0 ] 0 1 1
+}
+// Wall 1 (Red)
+{
+"classname" "func_group"
+"_color" "1 0 0"
+( -128 -128 256 ) ( -128 128 256 ) ( -128 128 0 ) __TB_empty [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1
+}
+// Wall 2 (Green)
+{
+"classname" "func_group"
+"_color" "0 1 0"
+( 128 128 256 ) ( 128 -128 256 ) ( 128 -128 0 ) __TB_empty [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1
+}
+// Wall 3 (White)
+{
+"classname" "func_group"
+( -128 128 256 ) ( 128 128 256 ) ( 128 128 0 ) __TB_empty [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1
+}
+// Wall 4 (White)
+{
+"classname" "func_group"
+( 128 -128 256 ) ( -128 -128 256 ) ( -128 -128 0 ) __TB_empty [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1
+}
+// Light
+{
+"classname" "light"
+"origin" "0 0 200"
+"light" "500"
+"_color" "1 1 1"
+}
+// Occluder Block
+{
+"classname" "func_wall"
+( -32 -32 64 ) ( -32 32 64 ) ( 32 32 64 ) __TB_empty [ 0 0 1 0 ] [ 0 -1 0 0 ] 0 1 1
+( -32 32 64 ) ( -32 -32 64 ) ( -32 -32 0 ) __TB_empty [ 0 0 1 0 ] [ 0 -1 0 0 ] 0 1 1
+( 32 32 0 ) ( 32 -32 0 ) ( 32 -32 64 ) __TB_empty [ 0 0 1 0 ] [ 0 -1 0 0 ] 0 1 1
+( -32 32 0 ) ( -32 32 64 ) ( 32 32 64 ) __TB_empty [ 0 0 1 0 ] [ 0 -1 0 0 ] 0 1 1
+( 32 -32 0 ) ( 32 -32 64 ) ( -32 -32 64 ) __TB_empty [ 0 0 1 0 ] [ 0 -1 0 0 ] 0 1 1
+}

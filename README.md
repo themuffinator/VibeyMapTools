@@ -1,139 +1,135 @@
-## ericw-tools
- - Website:         http://ericwa.github.io/ericw-tools
- - Documentation:
-   - 2.0.0-alpha: https://ericw-tools.readthedocs.io
-   - 0.18: [qbsp](https://ericwa.github.io/ericw-tools/doc/qbsp.html), [vis](https://ericwa.github.io/ericw-tools/doc/vis.html), [light](https://ericwa.github.io/ericw-tools/doc/light.html), [bspinfo](https://ericwa.github.io/ericw-tools/doc/bspinfo.html), [bsputil](https://ericwa.github.io/ericw-tools/doc/bsputil.html)
- - Maintainer:      Eric Wasylishen (AKA ericw)
- - Email:           ewasylishen@gmail.com
+<div align="center">
 
-### Original tyurtils:
+<img src="assets/img/banner_2x1.png" alt="VibeyMapTools Banner" width="800">
 
- - Website: http://disenchant.net
- - Author:  Kevin Shanahan (AKA Tyrann)
- - Email:   tyrann@disenchant.net
+# VibeyMapTools (VMT)
 
-## About
+**Modern BSP compilation tools for Quake engine mapping**
 
-ericw-tools is a branch of Tyrann's quake 1 tools, focused on
-adding lighting features, mostly borrowed from q3map2. There are a few
-bugfixes for qbsp as well. Original readme follows:
+[![Build Status](https://img.shields.io/github/actions/workflow/status/user/VibeyMapTools/ci.yml?branch=main&style=flat-square)](../../actions)
+[![Release](https://img.shields.io/github/v/release/user/VibeyMapTools?style=flat-square)](../../releases)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](COPYING)
 
-A collection of command line utilities for building Quake levels and working
-with various Quake file formats. I need to work on the documentation a bit
-more, but below are some brief descriptions of the tools.
+[**Download**](../../releases) · [**Documentation**](docs/) · [**Changelog**](CHANGELOG.md)
 
-Included utilities:
+</div>
 
- - qbsp    - Used for turning a .map file into a playable .bsp file.
+---
 
- - light   - Used for lighting a level after the bsp stage. This util was previously known as TyrLite
+## 🛠️ Tools
 
- - vis     - Creates the potentially visible set (PVS) for a bsp.
+<table>
+<tr>
+<td width="120"><b>vmt-qbsp</b></td>
+<td>Compile .map to .bsp</td>
+</tr>
+<tr>
+<td><b>vmt-vis</b></td>
+<td>Calculate PVS visibility</td>
+</tr>
+<tr>
+<td><b>vmt-light</b></td>
+<td>Calculate lightmaps with GPU acceleration</td>
+</tr>
+<tr>
+<td><b>vmt-bspinfo</b></td>
+<td>BSP information utility</td>
+</tr>
+<tr>
+<td><b>vmt-bsputil</b></td>
+<td>BSP manipulation utility</td>
+</tr>
+</table>
 
- - bspinfo - Print stats about the data contained in a bsp file.
+## ⚡ Quick Start
 
- - bsputil - Simple tool for manipulation of bsp file data
+```bash
+# Standard compilation
+vmt-qbsp mymap.map
+vmt-vis mymap.bsp
+vmt-light mymap.bsp
 
-See the doc/ directory for more detailed descriptions of the various
-tools capabilities.  See changelog.md for a brief overview of recent
-changes or https://github.com/ericwa/ericw-tools for the full changelog and
-source code.
-
-## Compiling
-
-Dependencies: Embree 3.0+, TBB (TODO: version?), Sphinx (for building manuals)
-
-### Ubuntu
-
-NOTE: Builds using Ubuntu's embree packages produce a significantly slower `light` (i.e. over twice as slow) than ones released on Embree's GitHub. See `build-linux-64.sh` for a better method. 
-
-```
-sudo apt install libembree-dev libtbb-dev cmake build-essential g++
-sudo apt install python3-pip
-python3 -m pip install sphinx_rtd_theme
-export PATH="~/.local/bin/:$PATH"
-git clone --recursive https://github.com/ericwa/ericw-tools
-cd ericw-tools
-mkdir build
-cd build
-cmake ..
-make
+# High-quality with GPU acceleration
+vmt-light -gpu -extra 4 -bounce 2 -denoise mymap.bsp
 ```
 
-### Windows
+## ✨ Key Features
 
-Example using vcpkg (32-bit build):
+<table>
+<tr>
+<td width="50%">
 
+**🎮 GPU Raytracing**
+NVIDIA OptiX acceleration with `-gpu` flag
+
+**🤖 AI Denoising**
+Intel OIDN integration via `-denoise`
+
+**📊 Stochastic Sampling**
+Faster complex scenes with `-stochastic`
+
+</td>
+<td>
+
+**⚡ Incremental Lighting**
+Cache-based iteration with `-incremental`
+
+**🌈 HDR Support**
+High dynamic range lightmaps via `-lithdr`
+
+**🎨 PBR Baking**
+Normal map integration in lightmaps
+
+</td>
+</tr>
+</table>
+
+## 📦 Downloads
+
+| Platform | Package |
+|:--------:|---------|
+| <img src="https://cdn.simpleicons.org/windows" width="16"> **Windows** | `vibeymaptools-windows-*.zip` |
+| <img src="https://cdn.simpleicons.org/linux" width="16"> **Linux** | `vibeymaptools-linux-*.tar.gz` |
+| <img src="https://cdn.simpleicons.org/apple" width="16"> **macOS** | `vibeymaptools-macos-*.tar.gz` |
+
+➡️ [**Latest Release**](../../releases/latest)
+
+## 🔧 Building from Source
+
+```bash
+git clone --recursive https://github.com/user/VibeyMapTools.git
+cd VibeyMapTools && cmake -B build && cmake --build build
 ```
-git clone --recursive https://github.com/ericwa/ericw-tools
-cd ericw-tools
 
-# creates a python virtual environment in the directory `sphinx-venv`
-# and install sphinx (for building the docs)
-py.exe -m venv sphinx-venv
-.\sphinx-venv\Scripts\Activate.ps1
-py.exe -m pip install -r docs/requirements.txt
+<details>
+<summary><b>Requirements</b></summary>
 
-git clone https://github.com/microsoft/vcpkg
-.\vcpkg\bootstrap-vcpkg.bat
+- CMake 3.14+
+- C++20 compiler (MSVC 2019+, GCC 9+, Clang 10+)
+- Intel Embree (recommended)
 
-# NOTE: vcpkg builds for 32-bit by default
-# NOTE: takes 30+ minutes
-.\vcpkg\vcpkg install embree3
-mkdir build
-cd build
+**Optional:**
+- CUDA + OptiX SDK (GPU raytracing)
+- Intel OIDN (AI denoising)
 
-# PowerShell syntax for getting current directory -
-# otherwise, replace with absolute path to "vcpkg/scripts/buildsystems/vcpkg.cmake"
-cmake .. -DCMAKE_TOOLCHAIN_FILE="$(pwd)/../vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_GENERATOR_PLATFORM=Win32 -DSPHINX_EXECUTABLE="$(pwd)/../sphinx-venv/Scripts/sphinx-build.exe"
-```
+</details>
 
-#### IDE Tips - CLion
+See [**BUILDING.md**](BUILDING.md) for detailed instructions.
 
-- Modify the "Google Test" run/debug configuration template to have `--gtest_catch_exceptions=0`, otherwise the  
-  debugger doesn't stop on exceptions (segfaults etc.)
+## 📖 Documentation
 
-  (see: https://youtrack.jetbrains.com/issue/CPP-29559/Clion-LLDB-does-not-break-on-SEH-exceptions-within-GTest)
+| Document | Description |
+|----------|-------------|
+| [BUILDING.md](BUILDING.md) | Build instructions, versioning, CI/CD |
+| [CHANGELOG.md](CHANGELOG.md) | Version history and release notes |
+| [docs/](docs/) | Full tutorials and reference |
 
-### macOS 10.15+
+## 📜 License
 
-```
-brew install embree tbb qt@6 cmake
-python3 -m pip install sphinx_rtd_theme
-git clone --recursive https://github.com/ericwa/ericw-tools
-cd ericw-tools
-mkdir build
-cd build
-cmake .. -DCMAKE_PREFIX_PATH="$(brew --prefix embree);$(brew --prefix tbb)"
-make
-```
+GPL v3 — See [COPYING](COPYING)
 
-## Credits
-
-- Kevin Shanahan (AKA Tyrann) for the original [tyrutils](http://disenchant.net/utils)
-- id Software (original release of these tools is at https://github.com/id-Software/quake-tools) 
-- rebb (ambient occlusion, qbsp improvements)
-- q3map2 authors (AO, sunlight2, penumbra, deviance are from [q3map2](https://github.com/TTimo/GtkRadiant/tree/master/tools/quake3/q3map2))
-- Spike (hexen 2 support, phong shading, various features)
-- MH (surface lights based on MHColour)
-- mfx, sock, Lunaran (testing)
-- Thanks to users at [func_msgboard](http://www.celephais.net/board/forum.php) for feedback and testing
-
-## License
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-Builds using Embree are licensed under GPLv3+ for compatibility with the
-Apache license.
+<div align="center">
+<sub>
+Based on <a href="https://github.com/ericw/ericw-tools">ericw-tools</a> by Eric Wasylishen
+</sub>
+</div>

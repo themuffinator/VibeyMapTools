@@ -626,6 +626,13 @@ void CalculateVertexNormals(const mbsp_t *bsp)
             } else {
                 vertNormal = {qv::normalize(vertNormal.normal), qv::normalize(vertNormal.tangent),
                     qv::normalize(vertNormal.bitangent)};
+
+                // Gram-Schmidt orthogonalization of TBN
+                // Make tangent perpendicular to normal
+                vertNormal.tangent = qv::normalize(
+                    vertNormal.tangent - vertNormal.normal * qv::dot(vertNormal.normal, vertNormal.tangent));
+                // Make bitangent perpendicular to both normal and tangent
+                vertNormal.bitangent = qv::normalize(qv::cross(vertNormal.normal, vertNormal.tangent));
             }
 
             // FIXME: why
@@ -654,14 +661,18 @@ void CalculateVertexNormals(const mbsp_t *bsp)
         }
 
         // now, record all of the smoothed normals that are actually part of `f`
+        std::vector<face_normal_t> face_normals;
+        face_normals.reserve(f.numedges);
         for (int j = 0; j < f.numedges; j++) {
             int v = Face_VertexAtIndex(bsp, &f, j);
             Q_assert(smoothedNormals.find(v) != smoothedNormals.end());
-
-            normalsMutex.lock();
-            vertex_normals[&f].push_back(smoothedNormals[v]);
-            normalsMutex.unlock();
+            face_normals.push_back(smoothedNormals[v]);
         }
+
+        // Single lock for entire face instead of per-vertex
+        normalsMutex.lock();
+        vertex_normals[&f] = std::move(face_normals);
+        normalsMutex.unlock();
     });
 
     FaceCache = MakeFaceCache(bsp);

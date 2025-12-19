@@ -568,7 +568,9 @@ qbsp_settings::qbsp_settings()
       logbmodels{this, {"logbmodels"}, false, &logging_group, "print log output for bmodels"},
       debug_missing_portal_sides{this, {"debug_missing_portal_sides"}, false, &logging_group,
           "output debug .prt files for missing portal sides"},
-      fixupdetailfence{this, {"fixupdetailfence"}, true, &debugging_group, "fixup detail fence"}
+      fixupdetailfence{this, {"fixupdetailfence"}, true, &debugging_group, "fixup detail fence"},
+      tjunc_detail{this, {"tjunc-detail", "tjunc_detail"}, false, &debugging_group,
+          "don't exclude detail brushes from T-junction fixing"}
 {
 }
 

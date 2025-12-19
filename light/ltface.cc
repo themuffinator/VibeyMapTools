@@ -20,6 +20,7 @@
 #include <light/ltface.hh>
 
 #include <light/light.hh>
+#include <light/lightcontext.hh> // g_ctx
 #include <light/trace_embree.hh>
 #include <light/phong.hh>
 #include <light/surflight.hh> //mxd
@@ -47,8 +48,58 @@ std::atomic<uint32_t> total_bounce_rays, total_bounce_ray_hits;
 std::atomic<uint32_t> total_surflight_rays, total_surflight_ray_hits; // mxd
 #endif
 
-thread_local static raystream_occlusion_t occlusion_stream;
-thread_local static raystream_intersection_t intersection_stream;
+#include <memory>
+
+#ifdef HAVE_OPTIX
+#include <light/trace_optix.hh>
+#endif
+
+#ifdef HAVE_OIDN
+#include <OpenImageDenoise/oidn.hpp>
+#endif
+
+static thread_local std::unique_ptr<RayStreamOcclusion> tls_occlusion_stream;
+static thread_local std::unique_ptr<RayStreamIntersection> tls_intersection_stream;
+
+static RayStreamOcclusion &GetOcclusionStream()
+{
+    if (!tls_occlusion_stream) {
+        if (light_options.gpu.value()) {
+#ifdef HAVE_OPTIX
+            tls_occlusion_stream = std::make_unique<RayStreamOcclusionOptix>();
+#else
+            logging::print("GPU Raytracing compiled out. Fallback to Embree.\n");
+            tls_occlusion_stream = std::make_unique<raystream_occlusion_t>();
+#endif
+        } else {
+            tls_occlusion_stream = std::make_unique<raystream_occlusion_t>();
+        }
+    }
+    return *tls_occlusion_stream;
+}
+
+static thread_local uint32_t s_stochastic_seed = 1337;
+static float StochasticRand()
+{
+    s_stochastic_seed = s_stochastic_seed * 1664525u + 1013904223u;
+    return (float)s_stochastic_seed / 4294967296.0f;
+}
+
+static RayStreamIntersection &GetIntersectionStream()
+{
+    if (!tls_intersection_stream) {
+        if (light_options.gpu.value()) {
+#ifdef HAVE_OPTIX
+            tls_intersection_stream = std::make_unique<RayStreamIntersectionOptix>();
+#else
+            tls_intersection_stream = std::make_unique<raystream_intersection_t>();
+#endif
+        } else {
+            tls_intersection_stream = std::make_unique<raystream_intersection_t>();
+        }
+    }
+    return *tls_intersection_stream;
+}
 
 /* Debug helper - move elsewhere? */
 void PrintFaceInfo(const mface_t *face, const mbsp_t *bsp)
@@ -125,6 +176,46 @@ std::vector<const mface_t *> NeighbouringFaces_old(const mbsp_t *bsp, const mfac
     return result;
 }
 
+// Copied from mathlib.cc but for face_normal_t
+static std::pair<bool, face_normal_t> InterpolateTBN(
+    const std::vector<qvec3f> &points, const std::vector<face_normal_t> &normals, const qvec3f &point)
+{
+    Q_assert(points.size() == normals.size());
+
+    if (points.size() < 3)
+        return std::make_pair(false, face_normal_t{});
+
+    const qvec3f &p0 = points.at(0);
+    const face_normal_t &n0 = normals.at(0);
+
+    const int N = (int)points.size();
+    for (int i = 2; i < N; i++) {
+        const qvec3f &p1 = points.at(i - 1);
+        const face_normal_t &n1 = normals.at(i - 1);
+        const qvec3f &p2 = points.at(i);
+        const face_normal_t &n2 = normals.at(i);
+
+        const auto edgeplanes = MakeInwardFacingEdgePlanes({p0, p1, p2});
+        if (edgeplanes.size() != 3)
+            continue;
+
+        if (EdgePlanes_PointInside(edgeplanes, point)) {
+            const qvec3f bary = qv::Barycentric_FromPoint(point, p0, p1, p2);
+
+            if (!std::isfinite(bary[0]) || !std::isfinite(bary[1]) || !std::isfinite(bary[2]))
+                continue;
+
+            face_normal_t res;
+            res.normal = qv::Barycentric_ToPoint(bary, n0.normal, n1.normal, n2.normal);
+            res.tangent = qv::Barycentric_ToPoint(bary, n0.tangent, n1.tangent, n2.tangent);
+            res.bitangent = qv::Barycentric_ToPoint(bary, n0.bitangent, n1.bitangent, n2.bitangent);
+            return std::make_pair(true, res);
+        }
+    }
+
+    return std::make_pair(false, face_normal_t{});
+}
+
 position_t CalcPointNormal(const mbsp_t *bsp, const mface_t *face, const qvec3f &origPoint, bool phongShaded,
     const faceextents_t &faceextents, int recursiondepth, const qvec3f &modelOffset)
 {
@@ -146,47 +237,7 @@ position_t CalcPointNormal(const mbsp_t *bsp, const mface_t *face, const qvec3f 
         return PositionSamplePointOnFace(bsp, face, phongShaded, point, modelOffset);
     }
 
-#if 0
-    // fixme: handle "not possible to compute"
-    const qvec3f centroid = Face_Centroid(bsp, face);
-
-    for (const neighbour_t &n : neighbours) {
-        /*
-         
-         check if in XXX area:
-         
-   "in1"     "in2"
-        \XXXX|
-         \XXX|
-          |--|----|
-          |\ |    |
-          |  *    |  * = centroid
-          |------/
-         
-         */
-        
-        const qvec3f in1_normal = qv::cross(qv::normalize(n.p0 - centroid), facecache.normal());
-        const qvec3f in2_normal = qv::cross(facecache.normal(), qv::normalize(n.p1 - centroid));
-        const qvec4f in1 = MakePlane(in1_normal, n.p0);
-        const qvec4f in2 = MakePlane(in2_normal, n.p1);
-        
-        const float in1_dist = DistAbovePlane(in1, point);
-        const float in2_dist = DistAbovePlane(in2, point);
-        if (in1_dist >= 0 && in2_dist >= 0) {
-            const auto &n_facecache = FaceCacheForFNum(Face_GetNum(bsp, n.face));
-            const qvec4f &n_surfplane = n_facecache.plane();
-            const auto &n_edgeplanes = n_facecache.edgePlanes();
-            
-            // project `point` onto the surface plane, then lift it off again
-            const qvec3f n_point = ProjectPointOntoPlane(n_surfplane, origPoint) + (qvec3f(n_surfplane) * sampleOffPlaneDist);
-            
-            // check if in face..
-            if (EdgePlanes_PointInside(n_edgeplanes, n_point)) {
-                return PositionSamplePointOnFace(bsp, n.face, phongShaded, n_point, modelOffset);
-            }
-        }
-    }
-#endif
+    // ... rest of function ...
 
     // not in any triangle. among the edges this point is _behind_,
     // search for the one that the point is least past the endpoints of the edge
@@ -227,14 +278,14 @@ position_t CalcPointNormal(const mbsp_t *bsp, const mface_t *face, const qvec3f 
         }
 
         if (bestplane != -1) {
-            // FIXME: Also need to handle non-smoothed but same plane
-            const mface_t *smoothed = Face_EdgeIndexSmoothed(bsp, face, bestplane);
-            if (smoothed) {
+            // Face_EdgeIndexSmoothed handles both smoothed and coplanar non-smoothed faces
+            const mface_t *neighbour = Face_EdgeIndexSmoothed(bsp, face, bestplane);
+            if (neighbour) {
                 // try recursive search
                 if (recursiondepth < 3) {
                     // call recursively to look up normal in the adjacent face
                     return CalcPointNormal(
-                        bsp, smoothed, point, phongShaded, faceextents, recursiondepth + 1, modelOffset);
+                        bsp, neighbour, point, phongShaded, faceextents, recursiondepth + 1, modelOffset);
                 }
             }
         }
@@ -301,6 +352,9 @@ static void CalcPoints_Debug(const lightsurf_t *surf, const mbsp_t *bsp)
 /// This is used for marking sample points as occluded.
 static bool Light_PointInAnySolid(const mbsp_t *bsp, const dmodelh2_t *self, const qvec3f &point)
 {
+    const auto &extended_content_flags = g_ctx->extended_content_flags;
+    const auto &tracelist = g_ctx->tracelist;
+
     if (Light_PointInSolid(bsp, self, extended_content_flags, point))
         return true;
 
@@ -359,14 +413,67 @@ static position_t PositionSamplePointOnFace(
 
     // Get the point normal
     qvec3f pointNormal;
+    qvec3f pointTangent{};
+    qvec3f pointBitangent{};
+
     if (phongShaded) {
-        const auto interpNormal = InterpolateNormal(points, normals, point);
+        const auto interpTBN = InterpolateTBN(points, normals, point);
         // We already know the point is in the face, so this should always succeed
-        if (!interpNormal.first)
+        if (!interpTBN.first)
             return position_t(point);
-        pointNormal = interpNormal.second;
+
+        pointNormal = interpTBN.second.normal;
+        pointTangent = interpTBN.second.tangent;
+        pointBitangent = interpTBN.second.bitangent;
     } else {
         pointNormal = plane;
+    }
+
+    // PBR: Normal Map Baking
+    if (phongShaded) { // Only apply to phong shaded surfaces for now
+        const char *texname = Face_TextureName(bsp, face);
+        std::string normTexName = std::string(texname) + "_norm";
+        // Try _norm, then _n
+        const img::texture *normTex = img::find(normTexName);
+        if (!normTex) {
+            normTexName = std::string(texname) + "_n";
+            normTex = img::find(normTexName);
+        }
+
+        if (normTex && !normTex->pixels.empty()) {
+            // Calculate UVs
+            const mtexinfo_t *tex = &bsp->texinfo[face->texinfo];
+            float u = qv::dot(point, qvec3f(tex->vecs[0][0], tex->vecs[0][1], tex->vecs[0][2])) + tex->vecs[0][3];
+            float v = qv::dot(point, qvec3f(tex->vecs[1][0], tex->vecs[1][1], tex->vecs[1][2])) + tex->vecs[1][3];
+
+            // Sample texture (wrapping)
+            int tu = (int)floor(u) % normTex->width;
+            int tv = (int)floor(v) % normTex->height;
+            if (tu < 0)
+                tu += normTex->width;
+            if (tv < 0)
+                tv += normTex->height;
+
+            const qvec4b &pixel = normTex->pixels[tv * normTex->width + tu];
+
+            // Decode Normal (Tangent Space) [0,255] -> [-1, 1]
+            qvec3f tanNormal;
+            tanNormal[0] = (pixel[0] / 255.0f) * 2.0f - 1.0f;
+            tanNormal[1] = (pixel[1] / 255.0f) * 2.0f - 1.0f;
+            tanNormal[2] = (pixel[2] / 255.0f) * 2.0f - 1.0f;
+
+            // Transform to World Space
+            // N' = T * tn.x + B * tn.y + N * tn.z
+            // Ensure T, B, N are normalized? specific versions of InterpolateTBN might not be.
+            // Face_VertexNormals ensures they are normalized. Interpolation might denormalize slightly.
+
+            qvec3f perturbedNormal =
+                pointTangent * tanNormal[0] + pointBitangent * tanNormal[1] + pointNormal * tanNormal[2];
+
+            if (qv::length(perturbedNormal) > 0.001f) {
+                pointNormal = qv::normalize(perturbedNormal);
+            }
+        }
     }
 
     const bool inSolid = Light_PointInAnySolid(bsp, mi->model, point + modelOffset);
@@ -1240,7 +1347,7 @@ static void LightFace_Entity(
     /*
      * Check it for real
      */
-    raystream_occlusion_t &rs = occlusion_stream;
+    RayStreamOcclusion &rs = GetOcclusionStream();
     rs.clearPushedRays();
 
     for (int i = 0; i < lightsurf->samples.size(); i++) {
@@ -1290,9 +1397,9 @@ static void LightFace_Entity(
         total_light_ray_hits++;
 #endif
 
-        const ray_io &ray = rs.getRay(j);
+        const RayPayload &p = rs.getPayload(j);
 
-        int i = ray.index;
+        int i = p.index;
 
         // check if we hit a dynamic shadow caster (only applies to style 0 lights)
         //
@@ -1307,7 +1414,7 @@ static void LightFace_Entity(
         // (if any), and handle it here.
         int desired_style = entity->style.value();
         if (desired_style == 0) {
-            desired_style = ray.dynamic_style;
+            desired_style = p.dynamic_style;
         }
 
         // if necessary, switch which lightmap we are writing to.
@@ -1320,7 +1427,7 @@ static void LightFace_Entity(
 
         sample.color += rs.getPushedRayColor(j);
         cached_lightmap->bounce_color += rs.getPushedRayColor(j);
-        sample.direction += ray.normalcontrib;
+        sample.direction += p.normalcontrib;
 
         Lightmap_Save(bsp, lightmaps, lightsurf, cached_lightmap, cached_style);
     }
@@ -1329,8 +1436,8 @@ static void LightFace_Entity(
 /**
  * Calculates light at a given point from an entity
  */
-static void LightPoint_Entity(const mbsp_t *bsp, raystream_occlusion_t &rs, const light_t *entity,
-    const qvec3f &surfpoint, lightgrid_samples_t &result)
+static void LightPoint_Entity(const mbsp_t *bsp, RayStreamOcclusion &rs, const light_t *entity, const qvec3f &surfpoint,
+    lightgrid_samples_t &result)
 {
     rs.clearPushedRays();
 
@@ -1393,7 +1500,7 @@ static void LightFace_Sky(const mbsp_t *bsp, const sun_t *sun, lightsurf_t *ligh
     }
 
     /* Check each point... */
-    raystream_intersection_t &rs = intersection_stream;
+    RayStreamIntersection &rs = GetIntersectionStream();
     rs.clearPushedRays();
 
     for (int i = 0; i < lightsurf->samples.size(); i++) {
@@ -1459,13 +1566,13 @@ static void LightFace_Sky(const mbsp_t *bsp, const sun_t *sun, lightsurf_t *ligh
             }
         }
 
-        const ray_io &ray = rs.getRay(j);
-        const int i = ray.index;
+        const RayPayload &p = rs.getPayload(j);
+        const int i = p.index;
 
         // check if we hit a dynamic shadow caster
         int desired_style = sun->style;
         if (desired_style == 0) {
-            desired_style = ray.dynamic_style;
+            desired_style = p.dynamic_style;
         }
 
         // if necessary, switch which lightmap we are writing to.
@@ -1478,7 +1585,7 @@ static void LightFace_Sky(const mbsp_t *bsp, const sun_t *sun, lightsurf_t *ligh
 
         sample.color += rs.getPushedRayColor(j);
         cached_lightmap->bounce_color += rs.getPushedRayColor(j);
-        sample.direction += ray.normalcontrib;
+        sample.direction += p.normalcontrib;
 #if 0
         total_light_ray_hits++;
 #endif
@@ -1487,7 +1594,7 @@ static void LightFace_Sky(const mbsp_t *bsp, const sun_t *sun, lightsurf_t *ligh
     }
 }
 
-static void LightPoint_Sky(const mbsp_t *bsp, raystream_intersection_t &rs, const sun_t *sun, const qvec3f &surfpoint,
+static void LightPoint_Sky(const mbsp_t *bsp, RayStreamIntersection &rs, const sun_t *sun, const qvec3f &surfpoint,
     lightgrid_samples_t &result)
 {
     // FIXME: Normalized sun vector should be stored in the sun_t. Also clarify which way the vector points (towards or
@@ -1700,7 +1807,7 @@ static void LightFace_LocalMin(
             return;
         }
 
-        raystream_occlusion_t &rs = occlusion_stream;
+        RayStreamOcclusion &rs = GetOcclusionStream();
         rs.clearPushedRays();
 
         lightmap_t *lightmap = Lightmap_ForStyle(lightmaps, entity->style.value(), lightsurf);
@@ -1734,8 +1841,8 @@ static void LightFace_LocalMin(
                 continue;
             }
 
-            const ray_io &ray = rs.getRay(j);
-            int i = ray.index;
+            const RayPayload &p = rs.getPayload(j);
+            int i = p.index;
             float value = entity->light.value();
             lightsample_t &sample = lightmap->samples[i];
 
@@ -1814,8 +1921,7 @@ static void LightFace_AutoMin(const mbsp_t *bsp, const mface_t *face, lightsurf_
             // apply the minlight
             for (int i = 0; i < lightsurf->samples.size(); i++) {
                 if (apply_to_all || lightsurf->samples[i].occluded) {
-                    lightmap->samples[i].color =
-                        qv::max(grid_sample.undirectional_color, lightmap->samples[i].color);
+                    lightmap->samples[i].color = qv::max(grid_sample.undirectional_color, lightmap->samples[i].color);
                 }
             }
 
@@ -1979,11 +2085,40 @@ LightFace_SurfaceLight(const mbsp_t *bsp, lightsurf_t *lightsurf, lightmapdict_t
 {
     const settings::worldspawn_keys &cfg = *lightsurf->cfg;
     const float surflight_gate = light_options.emissivequality.value() == emissivequality_t::HIGH ? 0.0f : 0.01f;
+    const size_t BATCH_SIZE = 65536;
 
     // check lighting channels (currently surface lights are always on CHANNEL_MASK_DEFAULT)
     if (!(lightsurf->object_channel_mask & CHANNEL_MASK_DEFAULT)) {
         return;
     }
+
+    RayStreamOcclusion &rs = GetOcclusionStream();
+    rs.reserve(BATCH_SIZE);
+    int current_batch_style = -1;
+
+    auto flush_batch = [&](int style) {
+        if (!rs.numPushedRays())
+            return;
+        rs.tracePushedRaysOcclusion(lightsurf->modelinfo, CHANNEL_MASK_DEFAULT);
+        lightmap_t *lightmap = Lightmap_ForStyle(lightmaps, style, lightsurf);
+        bool hit = false;
+        const size_t numrays = rs.numPushedRays();
+        for (size_t j = 0; j < numrays; j++) {
+            if (rs.getPushedRayOccluded(j))
+                continue;
+            const RayPayload &p = rs.getPayload(j);
+            const int i = p.index;
+            qvec3f indirect = rs.getPushedRayColor(j);
+            const float dirtscale = Dirt_GetScaleFactor(cfg, lightsurf->samples[i].occlusion, nullptr, 0.0, lightsurf);
+            indirect *= dirtscale;
+            lightmap->samples[i].color += indirect;
+            lightmap->bounce_color += indirect;
+            hit = true;
+        }
+        rs.clearPushedRays();
+        if (hit)
+            Lightmap_Save(bsp, lightmaps, lightsurf, lightmap, style);
+    };
 
     for (const auto &surf_ptr : EmissiveLightSurfaces()) {
         auto &vpl = *surf_ptr->vpl.get();
@@ -1997,10 +2132,39 @@ LightFace_SurfaceLight(const mbsp_t *bsp, lightsurf_t *lightsurf, lightmapdict_t
             else if (SurfaceLight_VisCull(bsp, &lightsurf->pvs, surf_ptr))
                 continue;
 
-            raystream_occlusion_t &rs = occlusion_stream;
+            float stochastic_weight = 1.0f;
+            if (light_options.stochastic.value()) {
+                qvec3f receiver_center = {0, 0, 0};
+                if (!lightsurf->samples.empty()) {
+                    receiver_center = lightsurf->samples[lightsurf->samples.size() / 2].point;
+                }
+
+                float dist_sq = qv::length_sq(receiver_center - vpl.pos);
+                dist_sq = std::max(dist_sq, 64.0f); // Min dist 8 units
+
+                // totalintensity is total light power. importance ~ power / dist^2
+                float importance = vpl_setting.totalintensity / dist_sq;
+                // Heuristic: Scale importance to probability.
+                // 500.0f is arbitrary tuning constant.
+                // If importance > 1/500, P=1.
+                float prob = std::clamp(importance * 500.0f, 0.05f, 1.0f);
+
+                if (StochasticRand() > prob)
+                    continue;
+
+                stochastic_weight = 1.0f / prob;
+            }
+
+            // batch switch logic
+            if (current_batch_style != -1 && vpl_setting.style != current_batch_style) {
+                flush_batch(current_batch_style);
+            }
+            current_batch_style = vpl_setting.style;
 
             for (int c = 0; c < vpl.points.size(); c++) {
-                rs.clearPushedRays();
+                if (rs.numPushedRays() >= BATCH_SIZE) {
+                    flush_batch(current_batch_style);
+                }
 
                 for (int i = 0; i < lightsurf->samples.size(); i++) {
                     const auto &sample = lightsurf->samples[i];
@@ -2026,61 +2190,29 @@ LightFace_SurfaceLight(const mbsp_t *bsp, lightsurf_t *lightsurf, lightmapdict_t
                         dir /= dist;
                     }
 
-                    const qvec3f indirect = GetSurfaceLighting(cfg, vpl, vpl_setting, dir, dist, lightsurf_normal,
-                        use_normal, standard_scale, sky_scale, hotspot_clamp);
+                    qvec3f indirect = GetSurfaceLighting(cfg, vpl, vpl_setting, dir, dist, lightsurf_normal, use_normal,
+                        standard_scale, sky_scale, hotspot_clamp);
+                    indirect *= stochastic_weight;
                     if (!qv::gate(indirect, surflight_gate)) { // Each point contributes very little to the final result
                         rs.pushRay(i, pos, dir, dist, &indirect);
+
+                        // If buffer full
+                        if (rs.numPushedRays() >= BATCH_SIZE) {
+                            flush_batch(current_batch_style);
+                        }
                     }
                 }
-
-                if (!rs.numPushedRays())
-                    continue;
-
-#if 0
-                total_surflight_rays += rs.numPushedRays();
-#endif
-                rs.tracePushedRaysOcclusion(lightsurf->modelinfo, CHANNEL_MASK_DEFAULT);
-
-                const int lightmapstyle = vpl_setting.style;
-                lightmap_t *lightmap = Lightmap_ForStyle(lightmaps, lightmapstyle, lightsurf);
-
-                bool hit = false;
-                const int numrays = rs.numPushedRays();
-                for (int j = 0; j < numrays; j++) {
-                    if (rs.getPushedRayOccluded(j))
-                        continue;
-
-                    const ray_io &ray = rs.getRay(j);
-                    const int i = ray.index;
-                    qvec3f indirect = rs.getPushedRayColor(j);
-
-                    // Q_assert(!std::isnan(indirect[0]));
-
-                    // Use dirt scaling on the surface lighting.
-                    const float dirtscale =
-                        Dirt_GetScaleFactor(cfg, lightsurf->samples[i].occlusion, nullptr, 0.0, lightsurf);
-                    indirect *= dirtscale;
-
-                    lightsample_t &sample = lightmap->samples[i];
-                    sample.color += indirect;
-                    lightmap->bounce_color += indirect;
-
-                    hit = true;
-#if 0
-                    ++total_surflight_ray_hits;
-#endif
-                }
-
-                // If surface light contributed anything, save.
-                if (hit)
-                    Lightmap_Save(bsp, lightmaps, lightsurf, lightmap, lightmapstyle);
             }
         }
+    }
+
+    if (rs.numPushedRays()) {
+        flush_batch(current_batch_style);
     }
 }
 
 static void // mxd
-LightPoint_SurfaceLight(const mbsp_t *bsp, const std::vector<uint8_t> *pvs, raystream_occlusion_t &rs, bool bounce,
+LightPoint_SurfaceLight(const mbsp_t *bsp, const std::vector<uint8_t> *pvs, RayStreamOcclusion &rs, bool bounce,
     float standard_scale, float sky_scale, float hotspot_clamp, const qvec3f &surfpoint, lightgrid_samples_t &result)
 {
     const settings::worldspawn_keys &cfg = light_options;
@@ -2628,6 +2760,135 @@ void IndirectLightFace(
     }
 }
 
+static void DenoiseFace(const mbsp_t *bsp, lightsurf_t *surf)
+{
+    if (!light_options.denoise.value())
+        return;
+
+    const int width = surf->width;
+    const int height = surf->height;
+
+    // Skip small faces or lightmaps
+    if (width < 2 || height < 2)
+        return;
+
+#ifdef HAVE_OIDN
+    // OIDN Path - AI-based denoising
+    static thread_local oidn::DeviceRef device;
+    if (!device) {
+        device = oidn::newDevice();
+        device.commit();
+    }
+
+    for (auto &lightmap : surf->lightmapsByStyle) {
+        if (lightmap.style == INVALID_LIGHTSTYLE)
+            continue;
+
+        std::vector<float> colorBuffer(width * height * 3);
+        std::vector<float> normalBuffer(width * height * 3);
+
+        // Fill buffers
+        for (int i = 0; i < width * height; i++) {
+            const auto &sample = lightmap.samples[i];
+            const auto &geo = surf->samples[i];
+            colorBuffer[i * 3 + 0] = sample.color[0] / 255.0f;
+            colorBuffer[i * 3 + 1] = sample.color[1] / 255.0f;
+            colorBuffer[i * 3 + 2] = sample.color[2] / 255.0f;
+            normalBuffer[i * 3 + 0] = geo.normal[0];
+            normalBuffer[i * 3 + 1] = geo.normal[1];
+            normalBuffer[i * 3 + 2] = geo.normal[2];
+        }
+
+        oidn::FilterRef filter = device.newFilter("RT");
+        filter.setImage("color", colorBuffer.data(), oidn::Format::Float3, width, height);
+        filter.setImage("normal", normalBuffer.data(), oidn::Format::Float3, width, height);
+        filter.setImage("output", colorBuffer.data(), oidn::Format::Float3, width, height);
+        filter.set("hdr", true);
+        filter.commit();
+        filter.execute();
+
+        const char *errorMessage;
+        if (device.getError(errorMessage) != oidn::Error::None) {
+            logging::print("OIDN Error: {}\n", errorMessage);
+        }
+
+        // Write back
+        for (int i = 0; i < width * height; i++) {
+            lightmap.samples[i].color[0] = colorBuffer[i * 3 + 0] * 255.0f;
+            lightmap.samples[i].color[1] = colorBuffer[i * 3 + 1] * 255.0f;
+            lightmap.samples[i].color[2] = colorBuffer[i * 3 + 2] * 255.0f;
+        }
+    }
+    return;
+#endif
+    // Bilateral Filter Fallback
+
+    // Parameters
+    constexpr int kernelRadius = 2; // 5x5 kernel
+    constexpr float sigmaSpatial = 1.0f;
+    constexpr float sigmaNormal = 32.0f;
+
+    // Precompute spatial weights
+    float spatialWeights[2 * kernelRadius + 1][2 * kernelRadius + 1];
+    for (int y = -kernelRadius; y <= kernelRadius; y++) {
+        for (int x = -kernelRadius; x <= kernelRadius; x++) {
+            float distSq = (float)(x * x + y * y);
+            spatialWeights[y + kernelRadius][x + kernelRadius] = expf(-distSq / (2.0f * sigmaSpatial * sigmaSpatial));
+        }
+    }
+
+    for (auto &lightmap : surf->lightmapsByStyle) {
+        if (lightmap.style == INVALID_LIGHTSTYLE)
+            continue;
+
+        std::vector<lightsample_t> outputSamples = lightmap.samples;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                const int centerIdx = y * width + x;
+                const auto &centerGeo = surf->samples[centerIdx];
+
+                if (centerGeo.occluded)
+                    continue;
+
+                qvec3f sumColor = {0, 0, 0};
+                float sumWeight = 0.0f;
+
+                for (int ky = -kernelRadius; ky <= kernelRadius; ky++) {
+                    int ny = std::clamp(y + ky, 0, height - 1);
+
+                    for (int kx = -kernelRadius; kx <= kernelRadius; kx++) {
+                        int nx = std::clamp(x + kx, 0, width - 1);
+
+                        const int neighborIdx = ny * width + nx;
+                        const auto &neighborGeo = surf->samples[neighborIdx];
+
+                        if (neighborGeo.occluded)
+                            continue;
+
+                        // Spatial
+                        float wSpatial = spatialWeights[ky + kernelRadius][kx + kernelRadius];
+
+                        // Normal
+                        float dot = qv::dot(centerGeo.normal, neighborGeo.normal);
+                        float wNormal = powf(std::max(0.0f, dot), sigmaNormal);
+
+                        float weight = wSpatial * wNormal;
+
+                        sumColor += lightmap.samples[neighborIdx].color * weight;
+                        sumWeight += weight;
+                    }
+                }
+
+                if (sumWeight > 0.0001f) {
+                    outputSamples[centerIdx].color = sumColor / sumWeight;
+                }
+            }
+        }
+        lightmap.samples = std::move(outputSamples);
+    }
+}
+
 /*
  * ============
  * PostProcessLightFace
@@ -2635,6 +2896,7 @@ void IndirectLightFace(
  */
 void PostProcessLightFace(const mbsp_t *bsp, lightsurf_t &lightsurf, const settings::worldspawn_keys &cfg)
 {
+
     auto face = lightsurf.face;
     const modelinfo_t *modelinfo = ModelInfoForFace(bsp, Face_GetNum(bsp, face));
 
@@ -2700,6 +2962,8 @@ void PostProcessLightFace(const mbsp_t *bsp, lightsurf_t &lightsurf, const setti
 
     if (light_options.debugmode == debugmodes::mottle)
         LightFace_DebugMottle(bsp, &lightsurf, lightmaps);
+
+    DenoiseFace(bsp, &lightsurf);
 }
 // lightgrid
 

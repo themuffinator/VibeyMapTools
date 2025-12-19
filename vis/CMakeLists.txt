@@ -18,15 +18,15 @@ if (M_LIB)
     target_link_libraries(libvis PRIVATE ${M_LIB})
 endif (M_LIB)
 
-add_executable(vis main.cc)
-target_link_libraries(vis PRIVATE common libvis)
+add_executable(vmt-vis main.cc)
+target_link_libraries(vmt-vis PRIVATE common libvis)
 
 # HACK: copy .dll dependencies
-add_custom_command(TARGET vis POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbb>" "$<TARGET_FILE_DIR:vis>"
-				   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbbmalloc>" "$<TARGET_FILE_DIR:vis>"
+add_custom_command(TARGET vmt-vis POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbb>" "$<TARGET_FILE_DIR:vmt-vis>"
+				   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbbmalloc>" "$<TARGET_FILE_DIR:vmt-vis>"
 				   )
-copy_mingw_dlls(vis)
-add_loader_path_to_rpath(vis)
+copy_mingw_dlls(vmt-vis)
+add_loader_path_to_rpath(vmt-vis)
 
-install(TARGETS vis RUNTIME DESTINATION .)
+install(TARGETS vmt-vis RUNTIME DESTINATION .)

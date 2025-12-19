@@ -1,22 +1,3 @@
-/*  Copyright (C) 2016 Eric Wasylishen
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
- See file, 'COPYING', for details.
- */
-
 #pragma once
 
 #include <common/aligned_allocator.hh>
@@ -28,6 +9,8 @@
 
 #include <embree4/rtcore.h>
 #include <embree4/rtcore_ray.h>
+
+#include <light/raystream.hh>
 
 struct mbsp_t;
 class modelinfo_t;
@@ -47,20 +30,7 @@ const std::set<const mface_t *> &ShadowCastingSolidFacesSet();
 struct ray_io
 {
     RTCRayHit ray;
-    float maxdist;
-    int index;
-    qvec3f color;
-    qvec3f normalcontrib;
-
-    bool hit_glass = false;
-    qvec3f glass_color;
-    float glass_opacity;
-
-    // This is set to the modelinfo's switchshadstyle if the ray hit
-    // a dynamic shadow caster. (note that for rays that hit dynamic
-    // shadow casters, all of the other hit data is assuming the ray went
-    // straight through).
-    int dynamic_style = 0;
+    RayPayload payload;
 };
 
 struct alignas(16) aligned_vec3
@@ -68,7 +38,7 @@ struct alignas(16) aligned_vec3
     float x, y, z, w;
 };
 
-class raystream_embree_common_t
+class raystream_embree_common_t : public virtual RayStream
 {
 protected:
     aligned_vector<ray_io> _rays;
@@ -78,34 +48,17 @@ public:
     inline raystream_embree_common_t(size_t capacity) { _rays.reserve(capacity); }
     virtual ~raystream_embree_common_t() = default;
 
-    void resize(size_t size) { _rays.resize(size); }
+    void resize(size_t size) override { _rays.resize(size); }
+    void reserve(size_t size) override { _rays.reserve(size); }
 
     ray_io &getRay(size_t index) { return _rays[index]; }
     const ray_io &getRay(size_t index) const { return _rays[index]; };
 
-    const size_t numPushedRays() const { return _rays.size(); }
+    size_t numPushedRays() const override { return _rays.size(); }
 
-    void clearPushedRays() { _rays.clear(); }
+    void clearPushedRays() override { _rays.clear(); }
 
-    inline qvec3f getPushedRayColor(size_t j) const
-    {
-        const ray_io &ray = getRay(j);
-        qvec3f result = ray.color;
-
-        if (ray.hit_glass) {
-            const qvec3f glasscolor = ray.glass_color;
-            const float opacity = ray.glass_opacity;
-
-            // multiply ray color by glass color
-            const qvec3f tinted = result * glasscolor;
-
-            // lerp ray color between original ray color and fully tinted by the glass texture color, based on the glass
-            // opacity
-            result = mix(result, tinted, opacity);
-        }
-
-        return result;
-    }
+    const RayPayload &getPayload(size_t index) const override { return _rays[index].payload; }
 
 protected:
     static inline RTCRayHit SetupRay(
@@ -177,13 +130,6 @@ extern sceneinfo skygeom; // sky. always occludes.
 extern sceneinfo solidgeom; // solids. always occludes.
 extern sceneinfo filtergeom; // conditional occluders.. needs to run ray intersection filter
 
-enum class hittype_t : uint8_t
-{
-    NONE = 0,
-    SOLID = 1,
-    SKY = 2
-};
-
 inline const sceneinfo &Embree_SceneinfoForGeomID(unsigned int geomID)
 {
     if (geomID == skygeom.geomID) {
@@ -197,24 +143,27 @@ inline const sceneinfo &Embree_SceneinfoForGeomID(unsigned int geomID)
     }
 }
 
-class raystream_intersection_t : public raystream_embree_common_t
+class raystream_intersection_t : public raystream_embree_common_t, public RayStreamIntersection
 {
 public:
     using raystream_embree_common_t::raystream_embree_common_t;
 
     inline void pushRay(int i, const qvec3f &origin, const qvec3f &dir, float dist, const qvec3f *color = nullptr,
-        const qvec3f *normalcontrib = nullptr)
+        const qvec3f *normalcontrib = nullptr) override
     {
         const RTCRayHit rayHit =
             SetupRay(_rays.size(), {origin[0], origin[1], origin[2], 0.f}, {dir[0], dir[1], dir[2], 0.f}, dist);
-        _rays.push_back(ray_io{.ray = rayHit,
-            .maxdist = dist,
-            .index = i,
-            .color = color ? *color : qvec3f{},
-            .normalcontrib = normalcontrib ? *normalcontrib : qvec3f{}});
+
+        RayPayload payload;
+        payload.index = i;
+        payload.maxdist = dist;
+        payload.color = color ? *color : qvec3f{};
+        payload.normalcontrib = normalcontrib ? *normalcontrib : qvec3f{};
+
+        _rays.push_back(ray_io{.ray = rayHit, .payload = payload});
     }
 
-    inline void tracePushedRaysIntersection(const modelinfo_t *self, int shadowmask)
+    inline void tracePushedRaysIntersection(const modelinfo_t *self, int shadowmask) override
     {
         if (!_rays.size())
             return;
@@ -226,11 +175,11 @@ public:
             rtcIntersect1(scene, &ray.ray, &embree4_args);
     }
 
-    inline const qvec3f &getPushedRayDir(size_t j) const { return *((qvec3f *)&_rays[j].ray.ray.dir_x); }
+    const qvec3f &getPushedRayDir(size_t j) const override { return *((qvec3f *)&_rays[j].ray.ray.dir_x); }
 
-    inline const float getPushedRayHitDist(size_t j) const { return _rays[j].ray.ray.tfar; }
+    const float getPushedRayHitDist(size_t j) const override { return _rays[j].ray.ray.tfar; }
 
-    inline hittype_t getPushedRayHitType(size_t j) const
+    hittype_t getPushedRayHitType(size_t j) const override
     {
         const unsigned id = _rays[j].ray.hit.geomID;
         if (id == RTC_INVALID_GEOMETRY_ID) {
@@ -242,7 +191,7 @@ public:
         }
     }
 
-    inline const triinfo *getPushedRayHitFaceInfo(size_t j) const
+    const triinfo *getPushedRayHitFaceInfo(size_t j) const override
     {
         const RTCRayHit &ray = _rays[j].ray;
 
@@ -258,24 +207,27 @@ public:
     }
 };
 
-class raystream_occlusion_t : public raystream_embree_common_t
+class raystream_occlusion_t : public raystream_embree_common_t, public RayStreamOcclusion
 {
 public:
     using raystream_embree_common_t::raystream_embree_common_t;
 
     inline void pushRay(int i, const qvec3f &origin, const qvec3f &dir, float dist, const qvec3f *color = nullptr,
-        const qvec3f *normalcontrib = nullptr)
+        const qvec3f *normalcontrib = nullptr) override
     {
         const RTCRay ray =
             SetupRay(_rays.size(), {origin[0], origin[1], origin[2], 0.f}, {dir[0], dir[1], dir[2], 0.f}, dist).ray;
-        _rays.push_back(ray_io{.ray = {ray},
-            .maxdist = dist,
-            .index = i,
-            .color = color ? *color : qvec3f{},
-            .normalcontrib = normalcontrib ? *normalcontrib : qvec3f{}});
+
+        RayPayload payload;
+        payload.index = i;
+        payload.maxdist = dist;
+        payload.color = color ? *color : qvec3f{};
+        payload.normalcontrib = normalcontrib ? *normalcontrib : qvec3f{};
+
+        _rays.push_back(ray_io{.ray = {ray}, .payload = payload});
     }
 
-    inline void tracePushedRaysOcclusion(const modelinfo_t *self, int shadowmask)
+    inline void tracePushedRaysOcclusion(const modelinfo_t *self, int shadowmask) override
     {
         if (!_rays.size())
             return;
@@ -286,7 +238,7 @@ public:
             rtcOccluded1(scene, &ray.ray.ray, &embree4_args);
     }
 
-    inline bool getPushedRayOccluded(size_t j) const { return (_rays[j].ray.ray.tfar < 0.0f); }
+    bool getPushedRayOccluded(size_t j) const override { return (_rays[j].ray.ray.tfar < 0.0f); }
 
-    inline const qvec3f &getPushedRayDir(size_t j) const { return *((qvec3f *)&_rays[j].ray.ray.dir_x); }
+    const qvec3f &getPushedRayDir(size_t j) const override { return *((qvec3f *)&_rays[j].ray.ray.dir_x); }
 };

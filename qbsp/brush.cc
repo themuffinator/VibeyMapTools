@@ -37,6 +37,8 @@ side_t side_t::clone_non_winding_data() const
     result.bevel = this->bevel;
     result.source = this->source;
     result.tested = this->tested;
+    result.origin = this->origin;
+    result.radius = this->radius;
     return result;
 }
 
@@ -45,6 +47,21 @@ side_t side_t::clone() const
     side_t result = clone_non_winding_data();
     result.w = this->w.clone();
     return result;
+}
+
+void side_t::update_radius()
+{
+    if (w.empty()) {
+        radius = 0;
+        origin = {};
+        return;
+    }
+    origin = w.center();
+    radius = 0;
+    for (size_t i = 0; i < w.size(); i++) {
+        radius = std::max(radius, qv::distance2(w[i], origin));
+    }
+    radius = sqrt(radius);
 }
 
 bool side_t::is_visible() const
@@ -591,6 +608,10 @@ std::optional<bspbrush_t> LoadBrush(const mapentity_t &src, mapbrush_t &mapbrush
         }
 #endif
 
+        if (hullnum.value_or(0) != 0 && mapbrush.is_hint()) {
+            continue;
+        }
+
         auto &dst = brush.sides.emplace_back();
         dst.texinfo = src.texinfo;
         dst.planenum = src.planenum;
@@ -639,6 +660,7 @@ std::optional<bspbrush_t> LoadBrush(const mapentity_t &src, mapbrush_t &mapbrush
 
     for (auto &face : brush.sides) {
         CheckFace(&face, *face.source, num_clipped);
+        face.update_radius();
     }
 
     // Rotatable objects must have a bounding box big enough to

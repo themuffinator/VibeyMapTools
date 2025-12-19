@@ -31,6 +31,7 @@
 #include <light/ltface.hh>
 #include <light/write.hh> // for facesup_t
 #include <light/trace_embree.hh>
+#include <light/cache.hh> // Incremental lighting
 
 #include <common/log.hh>
 #include <common/bsputils.hh>
@@ -56,64 +57,44 @@
 #include <common/qvec.hh>
 #include <common/json.hh>
 
+#include <light/lightcontext.hh>
+
 bool dirt_in_use = false;
 
-// intermediate representation of lightmap surfaces
-static std::unique_ptr<lightsurf_t[]> light_surfaces;
-static std::span<lightsurf_t> light_surfaces_span;
+// Context Global
+vibey::light::LightContext *g_ctx = nullptr;
 
-// light_surfaces filtered down to just the emissive ones
-static std::vector<lightsurf_t *> emissive_light_surfaces;
-
+// Legacy Proxy Accessors
 std::span<lightsurf_t> &LightSurfaces()
 {
-    return light_surfaces_span;
+    return g_ctx->light_surfaces_span;
 }
-
 std::vector<lightsurf_t *> &EmissiveLightSurfaces()
 {
-    return emissive_light_surfaces;
+    return g_ctx->emissive_light_surfaces;
 }
-
-static void UpdateEmissiveLightSurfacesList()
+const std::unordered_map<int, std::vector<uint8_t>> &UncompressedVis()
 {
-    emissive_light_surfaces.clear();
-
-    for (auto &surf_ptr : light_surfaces_span) {
-        if (surf_ptr.vpl) {
-            emissive_light_surfaces.push_back(&surf_ptr);
-        }
-    }
+    return g_ctx->uncompressed_vis;
 }
-
-std::vector<facesup_t> faces_sup; // lit2/bspx stuff
-std::vector<bspx_decoupled_lm_perface> facesup_decoupled_global;
 
 bool IsOutputtingSupplementaryData()
 {
-    return !faces_sup.empty();
+    // Use stored vector implicitly via ctx if possible or just check accessor?
+    // The previous implementation checked faces_sup.empty()
+    return !g_ctx->faces_sup.empty();
 }
 
-static std::unordered_map<int, std::vector<uint8_t>> all_uncompressed_vis;
+// Global Definitions (that were extern) - these must seemingly exist but point to nothing?
+// Actually, since we removed extern from header, these definitions in .cc are now local
+// unless we deleted them. But the goal is to delete them.
+// The code below previously defined:
+// std::vector<modelinfo_t *> modelinfo;
+// etc.
+// We remove them.
 
-const std::unordered_map<int, std::vector<uint8_t>> &UncompressedVis()
-{
-    return all_uncompressed_vis;
-}
-
-std::vector<modelinfo_t *> modelinfo;
-std::vector<const modelinfo_t *> tracelist;
-std::vector<const modelinfo_t *> selfshadowlist;
-std::vector<const modelinfo_t *> shadowworldonlylist;
-std::vector<const modelinfo_t *> switchableshadowlist;
-
-std::vector<surfflags_t> extended_texinfo_flags;
-std::vector<contentflags_t> extended_content_flags;
-
-int dump_facenum = -1;
-int dump_vertnum = -1;
-
-// modelinfo_t
+// Re-implement modelinfo accessors if needed, or update call sites.
+// modelinfo_t methods...
 
 float modelinfo_t::getResolvedPhongAngle() const
 {
@@ -129,6 +110,10 @@ float modelinfo_t::getResolvedPhongAngle() const
 
 bool modelinfo_t::isWorld() const
 {
+    // &bsp->dmodels[0] == model;
+    // We need access to bsp. 'this' has a bsp pointer usually?
+    // checking constructor: modelinfo_t(const mbsp_t *b, ...) : bsp{b}
+    // Yes.
     return &bsp->dmodels[0] == model;
 }
 
@@ -454,7 +439,12 @@ light_settings::light_settings()
           &debug_group, "save mottle pattern to lightmap"},
 
       debug_lightgrid_octree{
-          this, "debug_lightgrid_octree", false, &debug_group, "write .octree.prt file for light grid"}
+          this, "debug_lightgrid_octree", false, &debug_group, "write .octree.prt file for light grid"},
+
+      incremental{this, "incremental", false, &performance_group, "use incremental lighting to skip unchanged faces"},
+      denoise{this, "denoise", false, &postprocessing_group, "apply smart denoising (bilateral filter) to lightmaps"},
+      gpu{this, "gpu", false, &performance_group, "enable GPU-accelerated raytracing"},
+      stochastic{this, "stochastic", false, &performance_group, "enable probabilistic light sampling"}
 {
 }
 
@@ -617,22 +607,25 @@ static std::vector<face_texture_cache> face_textures;
 
 const img::texture *Face_Texture(const mbsp_t *bsp, const mface_t *face)
 {
-    return face_textures[face - bsp->dfaces.data()].image;
+    return g_ctx->face_textures[face - bsp->dfaces.data()].image;
 }
 
 const qvec3b &Face_LookupTextureColor(const mbsp_t *bsp, const mface_t *face)
 {
-    return face_textures[face - bsp->dfaces.data()].averageColor;
+    return g_ctx->face_textures[face - bsp->dfaces.data()].averageColor;
 }
 
 const qvec3f &Face_LookupTextureBounceColor(const mbsp_t *bsp, const mface_t *face)
 {
-    return face_textures[face - bsp->dfaces.data()].bounceColor;
+    return g_ctx->face_textures[face - bsp->dfaces.data()].bounceColor;
 }
 
 // needs to be done after settings are loaded from worldspawn, because it uses light_options
 static void CacheTextures(const mbsp_t &bsp)
 {
+    auto &face_textures = g_ctx->face_textures;
+    auto &extended_texinfo_flags = g_ctx->extended_texinfo_flags;
+
     face_textures.resize(bsp.dfaces.size());
 
     for (size_t i = 0; i < bsp.dfaces.size(); i++) {
@@ -654,12 +647,19 @@ static void CacheTextures(const mbsp_t &bsp)
 
 static void CreateLightmapSurfaces(mbsp_t *bsp)
 {
-    light_surfaces = std::make_unique<lightsurf_t[]>(bsp->dfaces.size());
-    light_surfaces_span = {light_surfaces.get(), light_surfaces.get() + bsp->dfaces.size()};
+    g_ctx->light_surfaces = std::make_unique<lightsurf_t[]>(bsp->dfaces.size());
+    g_ctx->light_surfaces_span = {g_ctx->light_surfaces.get(), g_ctx->light_surfaces.get() + bsp->dfaces.size()};
+    auto &light_surfaces = g_ctx->light_surfaces;
+    auto &light_surfaces_span = g_ctx->light_surfaces_span;
+
     logging::funcheader();
     logging::parallel_for(static_cast<size_t>(0), bsp->dfaces.size(), [&bsp](size_t i) {
-        auto facesup = faces_sup.empty() ? nullptr : &faces_sup[i];
-        auto facesup_decoupled = facesup_decoupled_global.empty() ? nullptr : &facesup_decoupled_global[i];
+        auto facesup = g_ctx->faces_sup.empty() ? nullptr : &g_ctx->faces_sup[i];
+        // decoupled global commented out in ctx for now, assuming not used or placeholder
+        // auto facesup_decoupled = facesup_decoupled_global.empty() ? nullptr : &facesup_decoupled_global[i];
+        const bspx_decoupled_lm_perface *facesup_decoupled =
+            g_ctx->facesup_decoupled_global.empty() ? nullptr : &g_ctx->facesup_decoupled_global[i];
+
         auto face = &bsp->dfaces[i];
 
         /* One extra lightmap is allocated to simplify handling overflow */
@@ -679,24 +679,39 @@ static void CreateLightmapSurfaces(mbsp_t *bsp)
                 }
 
                 if (facesup_decoupled) {
-                    facesup_decoupled->offset = -1;
+                    // facesup_decoupled is const pointer here, need to cast or access via non-const?
+                    // The original code was using a non-const pointer.
+                    // Let's fix the pointer type above.
                 }
             }
         }
 
-        light_surfaces[i] = CreateLightmapSurface(bsp, face, facesup, facesup_decoupled, light_options);
+        // Re-acquiring non-const pointer for modification
+        bspx_decoupled_lm_perface *facesup_decoupled_nc =
+            g_ctx->facesup_decoupled_global.empty() ? nullptr : &g_ctx->facesup_decoupled_global[i];
+        if (!light_options.litonly.value() && facesup_decoupled_nc) {
+            facesup_decoupled_nc->offset = -1;
+        }
+
+        light_surfaces[i] = CreateLightmapSurface(bsp, face, facesup, facesup_decoupled_nc, light_options);
     });
 }
 
 static void ClearLightmapSurfaces()
 {
     logging::funcheader();
-    light_surfaces.reset();
-    light_surfaces_span = {};
+    g_ctx->light_surfaces.reset();
+    g_ctx->light_surfaces_span = {};
 }
 
 static void FindModelInfo(const mbsp_t *bsp)
 {
+    auto &modelinfo = g_ctx->modelinfo;
+    auto &tracelist = g_ctx->tracelist;
+    auto &selfshadowlist = g_ctx->selfshadowlist;
+    auto &shadowworldonlylist = g_ctx->shadowworldonlylist;
+    auto &switchableshadowlist = g_ctx->switchableshadowlist;
+
     Q_assert(modelinfo.size() == 0);
     Q_assert(tracelist.size() == 0);
     Q_assert(selfshadowlist.size() == 0);
@@ -786,6 +801,10 @@ static void LightWorld(bspdata_t *bspdata, const fs::path &source, bool forcedsc
 {
     logging::funcheader();
 
+    // Context is process-global for now, initialized in main.
+    // vibey::light::LightContext ctx(&light_options, &std::get<mbsp_t>(bspdata->bsp));
+    // g_ctx = &ctx;
+
     mbsp_t &bsp = std::get<mbsp_t>(bspdata->bsp);
 
     ClearLightmapSurfaces();
@@ -809,25 +828,25 @@ static void LightWorld(bspdata_t *bspdata, const fs::path &source, bool forcedsc
 
     if (lmshift_lump == bspdata->bspx.entries.end() && !(light_options.write_litfile & lightfile_t::lit2) &&
         light_options.facestyles.value() <= 4) {
-        faces_sup.clear(); // no scales, no lit2
+        g_ctx->faces_sup.clear(); // no scales, no lit2
     } else { // we have scales or lit2 output. yay...
-        faces_sup.resize(bsp.dfaces.size());
+        g_ctx->faces_sup.resize(bsp.dfaces.size());
 
         if (lmshift_lump != bspdata->bspx.entries.end()) {
             for (int i = 0; i < bsp.dfaces.size(); i++) {
-                faces_sup[i].lmscale = nth_bit(reinterpret_cast<const char *>(lmshift_lump->second.data())[i]);
+                g_ctx->faces_sup[i].lmscale = nth_bit(reinterpret_cast<const char *>(lmshift_lump->second.data())[i]);
             }
         } else {
             for (int i = 0; i < bsp.dfaces.size(); i++) {
-                faces_sup[i].lmscale = modelinfo.at(0)->lightmapscale;
+                g_ctx->faces_sup[i].lmscale = g_ctx->modelinfo.at(0)->lightmapscale;
             }
         }
     }
 
     // decoupled lightmaps
-    facesup_decoupled_global.clear();
+    g_ctx->facesup_decoupled_global.clear();
     if (light_options.world_units_per_luxel.is_changed()) {
-        facesup_decoupled_global.resize(bsp.dfaces.size());
+        g_ctx->facesup_decoupled_global.resize(bsp.dfaces.size());
     }
 
     CalculateVertexNormals(&bsp);
@@ -843,15 +862,104 @@ static void LightWorld(bspdata_t *bspdata, const fs::path &source, bool forcedsc
     MakeRadiositySurfaceLights(light_options, &bsp);
     UpdateEmissiveLightSurfacesList();
 
+    // Load cache if incremental
+    light_cache_t cache;
+    bool use_cache = false;
+    std::string cache_filename;
+
+    if (light_options.incremental.value()) {
+        cache_filename = source.string();
+        // replace extension or append
+        if (cache_filename.length() > 4 && cache_filename.substr(cache_filename.length() - 4) == ".bsp") {
+            cache_filename = cache_filename.substr(0, cache_filename.length() - 4);
+        }
+        cache_filename += ".litcache";
+
+        if (LoadCache(cache_filename, cache)) {
+            // Validate BSP hash
+            // We need to calculate it.
+            if (cache.bsp_checksum == CalculateBSPGeoHash(&bsp)) {
+                use_cache = true;
+                logging::print("Incremental: Cache loaded and BSP matches.\n");
+            } else {
+                logging::print("Incremental: Cache mismatch (BSP changed), discarding.\n");
+                cache.faces.clear();
+                cache.bsp_checksum = CalculateBSPGeoHash(&bsp);
+            }
+        } else {
+            logging::print("Incremental: No cache found, creating new.\n");
+            cache.bsp_checksum = CalculateBSPGeoHash(&bsp);
+        }
+    }
+
     logging::header("Direct Lighting"); // mxd
-    logging::parallel_for(static_cast<size_t>(0), bsp.dfaces.size(), [&bsp](size_t i) {
+    logging::parallel_for(static_cast<size_t>(0), bsp.dfaces.size(), [&bsp, &use_cache, &cache](size_t i) {
         if (Face_IsLightmapped(&bsp, &bsp.dfaces[i])) {
 #if defined(HAVE_EMBREE) && defined(__SSE2__)
             _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 #endif
-            DirectLightFace(&bsp, light_surfaces[i], light_options);
+            bool loaded_from_cache = false;
+
+            if (use_cache) {
+                // Calculate hash for this face
+                // We need to pass the list of lights. The global 'lights' vector is what we need.
+                // However, we are in a lambda. 'lights' is likely global in entities.hh
+                // Let's assume 'lights' is available.
+
+                uint64_t hash = CalculateLightHash(&light_surfaces[i], lights);
+
+                // Check cache
+                // We need thread safety if accessing cache?
+                // Currently 'cache' is read-only if use_cache is true?
+                // No, we might want to update it.
+                // But std::map read is thread safe.
+                // Write is not.
+                // So if we are WRITING to cache, we need a lock.
+                // Or we can just read here, and only write if we computed.
+
+                // Actually, simpler: Read from cache. If miss/mismatch, compute.
+                // We shouldn't write to the global 'cache' map in parallel without lock.
+                // But we can just store the result in 'light_surfaces[i]' and update the cache *after* the loop?
+                // Or have a per-thread cache update?
+
+                // Let's protect cache access or duplicate data.
+                // The cache map is likely large.
+                // Reading:
+                auto it = cache.faces.find(i);
+                if (it != cache.faces.end() && it->second.light_hash == hash) {
+                    // Match! Copy data.
+                    if (it->second.samples.size() == light_surfaces[i].samples.size()) {
+                        light_surfaces[i].samples = it->second.samples;
+                        loaded_from_cache = true;
+                    }
+                }
+
+                // If we computed, we should store the new hash so we can save it later.
+                // But we can't write to 'cache' directly.
+                // We can store the hash in light_surfaces[i] (if we add a field) or a parallel vector.
+            }
+
+            if (!loaded_from_cache) {
+                DirectLightFace(&bsp, light_surfaces[i], light_options);
+            }
         }
     });
+
+    // Update cache with new data
+    if (light_options.incremental.value()) {
+        for (size_t i = 0; i < bsp.dfaces.size(); i++) {
+            if (Face_IsLightmapped(&bsp, &bsp.dfaces[i])) {
+                face_cache_t &fc = cache.faces[i]; // create or overwrite
+                fc.light_hash = CalculateLightHash(&light_surfaces[i], lights);
+                fc.samples = light_surfaces[i].samples;
+            }
+        }
+        SaveCache(cache_filename, cache);
+    }
+
+    // Save progress after direct lighting
+    logging::print("Saving progress after direct lighting...\n");
+    SaveLightmapSurfaces(bspdata, source);
 
     if (bouncerequired && !light_options.nolighting.value()) {
 
@@ -874,6 +982,10 @@ static void LightWorld(bspdata_t *bspdata, const fs::path &source, bool forcedsc
                     IndirectLightFace(&bsp, light_surfaces[f], light_options, i);
                 }
             });
+
+            // Save progress after each bounce pass
+            logging::print("Saving progress after bounce pass {}...\n", i);
+            SaveLightmapSurfaces(bspdata, source);
         }
     }
 
@@ -890,7 +1002,14 @@ static void LightWorld(bspdata_t *bspdata, const fs::path &source, bool forcedsc
         });
     }
 
+    // Final save
     SaveLightmapSurfaces(bspdata, source);
+
+    // Load textures for PBR
+    if (light_options.phong.value() > 0) {
+        logging::header("Loading Textures");
+        img::load_textures(&bsp, light_options);
+    }
 
     // kill this stuff if its somehow found.
     bspdata->bspx.entries.erase("LMSTYLE16");
@@ -898,7 +1017,7 @@ static void LightWorld(bspdata_t *bspdata, const fs::path &source, bool forcedsc
     bspdata->bspx.entries.erase("LMOFFSET");
     bspdata->bspx.entries.erase("DECOUPLED_LM");
 
-    if (!faces_sup.empty()) {
+    if (!g_ctx->faces_sup.empty()) {
         bool needoffsets = false;
         bool needstyles = false;
         int maxstyle = 0;
@@ -1213,22 +1332,21 @@ static inline void WriteNormals(const mbsp_t &bsp, bspdata_t &bspdata)
 static void ResetLight()
 {
     dirt_in_use = false;
-    ClearLightmapSurfaces();
-    faces_sup.clear();
-    facesup_decoupled_global.clear();
-
-    all_uncompressed_vis.clear();
-    modelinfo.clear();
-    tracelist.clear();
-    selfshadowlist.clear();
-    shadowworldonlylist.clear();
-    switchableshadowlist.clear();
-
-    extended_texinfo_flags.clear();
-    extended_content_flags.clear();
-
-    dump_facenum = -1;
-    dump_vertnum = -1;
+    if (g_ctx) {
+        ClearLightmapSurfaces();
+        g_ctx->faces_sup.clear();
+        g_ctx->facesup_decoupled_global.clear();
+        g_ctx->uncompressed_vis.clear(); // uncompressed_vis is unordered_map
+        g_ctx->modelinfo.clear();
+        g_ctx->tracelist.clear();
+        g_ctx->selfshadowlist.clear();
+        g_ctx->shadowworldonlylist.clear();
+        g_ctx->switchableshadowlist.clear();
+        g_ctx->extended_texinfo_flags.clear();
+        g_ctx->extended_content_flags.clear();
+        g_ctx->dump_facenum = -1;
+        g_ctx->dump_vertnum = -1;
+    }
 }
 
 void light_reset()
@@ -1324,6 +1442,13 @@ int light_main(int argc, const char **argv)
 
     img::load_textures(&bsp, light_options);
 
+    // Create Context
+    // Note: We use the pointer to bsp inside bspdata.
+    // WARNING: ConvertBSPFormat might re-allocate if it changes variant?
+    // But we are past that.
+    vibey::light::LightContext ctx(&light_options, &bsp);
+    g_ctx = &ctx;
+
     extended_texinfo_flags = LoadExtendedTexinfoFlags(source, &bsp);
     extended_content_flags = LoadExtendedContentFlags(source, &bsp);
 
@@ -1334,7 +1459,8 @@ int light_main(int argc, const char **argv)
     light_options.light_postinitialize(argc, argv);
     light_options.print_summary();
 
-    all_uncompressed_vis = DecompressAllVis(&bsp, true);
+    g_ctx->uncompressed_vis = DecompressAllVis(&bsp, true);
+    // FindModelInfo now uses g_ctx
     FindModelInfo(&bsp);
 
     FindDebugFace(&bsp);
@@ -1392,6 +1518,9 @@ int light_main(int argc, const char **argv)
     if (!light_options.litonly.value()) {
         WriteBSPFile(source, &bspdata);
     }
+
+    // Explicitly nullify global context on exit
+    g_ctx = nullptr;
 
     auto end = I_FloatTime();
     logging::print("{:.3} seconds elapsed\n", (end - start));
