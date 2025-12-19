@@ -1,31 +1,140 @@
-====
-qbsp
-====
+=======
+vmt-bsp
+=======
 
-qbsp - Compile a Quake BSP file from a MAP source file
+BSP Compiler — Compile .map to .bsp
+===================================
 
 Synopsis
 --------
 
-**qbsp** [OPTION]... SOURCFILE [DESTFILE]
+.. code-block:: bash
+
+   vmt-bsp [OPTION]... SOURCEFILE [DESTFILE]
 
 Description
 -----------
 
-:program:`qbsp` is a tool used in the creation of maps for the **id Software**
-game **Quake**. qbsp takes a .map file as input and produces a .bsp file
-playable in the Quake engine. If the ``DESTFILE`` argument is not
-supplied, the output filename will be chosen by stripping the file
-extension (if any) from ``SOURCEFILE`` and appending the .bsp extension.
+:program:`vmt-bsp` is the BSP compiler for VibeyMapTools. It takes a ``.map`` file 
+as input and produces a ``.bsp`` file playable in Quake-family engines.
+
+If the ``DESTFILE`` argument is not supplied, the output filename will be chosen 
+by stripping the file extension from ``SOURCEFILE`` and appending ``.bsp``.
+
+Supported Games
+---------------
+
+* **Quake** — Default mode
+* **Quake II** — Use :option:`-q2bsp`
+* **Hexen II** — Use :option:`-hexen2`
+* **Half-Life** — Use :option:`-hlbsp` (experimental)
 
 Options
 -------
 
 .. program:: qbsp
 
+General Options
+~~~~~~~~~~~~~~~
+
+.. option:: -verbose, -v
+
+   Print out more .map information.
+
+   Note, this switch no longer implies :option:`-loghulls`; use that if you want to see
+   statistics for collision hulls.
+
+.. option:: -quiet, -noverbose
+
+   Suppress non-important messages (equivalent to :option:`-nopercent` :option:`-nostat` :option:`-noprogress`).
+
+.. option:: -log
+
+   Write log files. Enabled by default.
+
+.. option:: -nolog
+
+   Don't write log files.
+
+.. option:: -nopercent
+
+   Prevents output of percent completion information.
+
+.. option:: -nostat
+
+   Don't output statistic messages.
+
+.. option:: -noprogress
+
+   Don't output progress messages.
+
+.. option:: -nocolor
+
+   Don't output ANSI color codes (in case the terminal doesn't recognize colors, e.g. TB).
+
+.. option:: -threads n
+
+   Set number of threads to use. By default, vmt-bsp will attempt to use all available hardware threads.
+
+.. option:: -lowpriority
+
+   Run in a lower priority, to free up headroom for other processes. Enabled by default.
+
+BSP Format Options
+~~~~~~~~~~~~~~~~~~
+
+.. option:: -q2bsp
+
+   Target Quake II and the vanilla Q2BSP format, automatically switching to Qbism format
+   if necessary (unless :option:`-noallowupgrade` is specified.)
+
+.. option:: -qbism
+
+   Target Quake II and use Qbism's extended Quake II BSP format.
+
+.. option:: -q2rtx
+
+   Adjust settings to best support Q2RTX.
+
+.. option:: -hexen2
+
+   Generate a Hexen II bsp. This can be used in addition to :option:`-bsp2` to avoid
+   clipnode issues.
+
+.. option:: -bsp2
+
+   Create the output BSP file in BSP2 format. Allows the creation of
+   much larger and more complex maps than the original BSP29 format.
+
+.. option:: -2psb
+
+   Create the output BSP file in 2PSB format. This is an earlier version of
+   the BSP2 format, supported by the RMQ engine.
+
+   .. deprecated:: 1.0
+      Use :option:`-bsp2` instead.
+
+.. option:: -hlbsp
+
+   Create the output BSP file in Half-Life's format. Note that the hull
+   size differences prevent this from being generally usable for the
+   vanilla Quake gamecode. This cannot be used in combination with :option:`-bsp2`.
+
+.. option:: -allowupgrade
+
+   Allow formats to "upgrade" to compatible extended formats when a limit is
+   exceeded (e.g. Quake BSP to BSP2, or Quake II BSP to Qbism BSP). Enabled by default.
+
+.. option:: -noallowupgrade
+
+   Opt out of :option:`-allowupgrade`.
+
+Compilation Options
+~~~~~~~~~~~~~~~~~~~
+
 .. option:: -nofill
 
-   Doesn't perform outside filling
+   Doesn't perform outside filling.
 
 .. option:: -filltype auto | inside | outside
 
@@ -50,7 +159,7 @@ Options
 
 .. option:: -noskip
 
-   Doesn't remove faces using the :texture:`skip` texture
+   Doesn't remove faces using the :texture:`skip` texture.
 
 .. option:: -nodetail
 
@@ -58,15 +167,7 @@ Options
 
 .. option:: -onlyents
 
-   Only updates .map entities
-
-.. option:: -verbose
-            -v
-
-   Print out more .map information.
-
-   Note, this switch no longer implies :option:`-loghulls`; use that if you want to see
-   statistics for collision hulls.
+   Only updates .map entities.
 
 .. option:: -loghulls
 
@@ -75,19 +176,6 @@ Options
 .. option:: -logbmodels
 
    Print log output for bmodels.
-
-.. option:: -quiet
-            -noverbose
-
-   Suppress non-important messages (equivalent to :option:`-nopercent` :option:`-nostat` :option:`-noprogress`).
-
-.. option:: -log
-
-   Write log files. Enabled by default.
-
-.. option:: -nolog
-
-   Don't write log files.
 
 .. option:: -chop
 
@@ -110,8 +198,7 @@ Options
    Doesn't combine sky and water faces into one large face. This allows
    for statically lit water.
 
-.. option:: -litwater
-            -splitturb
+.. option:: -litwater, -splitturb
 
    Enable lit liquids. This allows for statically lit water in compatible source ports,
    which still works but renders as fullbright on non-supporting source ports.
@@ -125,7 +212,7 @@ Options
 
 .. option:: -notranswater
 
-   Computes portal information for opaque water
+   Computes portal information for opaque water.
 
 .. option:: -oldaxis
 
@@ -133,9 +220,7 @@ Options
 
 .. option:: -nooldaxis
 
-   Use alternate texture alignment algorithm. The default is to use the
-   original QBSP texture alignment algorithm, which required the
-   :option:`-oldaxis` switch in tyrutils-ericw v0.15.1 and earlier.
+   Use alternate texture alignment algorithm.
 
 .. option:: -forcegoodtree
 
@@ -147,77 +232,8 @@ Options
 
    Makes it a compile error if a leak is detected.
 
-.. option:: -nopercent
-
-   Prevents output of percent completion information
-
-.. option:: -nostat
-
-   Don't output statistic messages.
-
-.. option:: -noprogress
-
-   Don't output progress messages.
-
-.. option:: -nocolor
-
-   Don't output ANSI color codes (in case the terminal doesn't recognize colors, e.g. TB).
-
-.. option:: -q2bsp
-
-   Target Quake II and the vanilla Q2BSP format, automatically switching to Qbism format
-   if necessary (unless :option:`-noallowupgrade` is specified.)
-
-.. option:: -qbism
-
-   Target Quake II and use Qbism's extended Quake II BSP format.
-
-.. option:: -q2rtx
-
-   Adjust settings to best support Q2RTX.
-
-.. option:: -hexen2
-
-   Generate a hexen2 bsp. This can be used in addition to :option:`-bsp2` to avoid
-   clipnode issues.
-
-.. option:: -bsp2
-
-   Create the output BSP file in BSP2 format. Allows the creation of
-   much larger and more complex maps than the original BSP 29 format).
-
-.. option:: -2psb
-
-   Create the output BSP file in 2PSB format. This an earlier version of
-   the BSP2 format, supported by the RMQ engine (and thus is also known
-   as the BSP2rmq or RMQe bsp format).
-
-   .. deprecated:: 1.0
-      Use :option:`-bsp2` instead.
-
-.. option:: -allowupgrade
-
-   Allow formats to "upgrade" to compatible extended formats when a limit is
-   exceeded (e.g. Quake BSP to BSP2, or Quake 2 BSP to Qbism BSP). Enabled by default.
-
-.. option:: -noallowupgrade
-
-   Opt out of :option:`-allowupgrade`.
-
-.. option:: -hlbsp
-
-   Create the output BSP file in Half-Life's format. Note that the hull
-   size differences prevent this from being generally usable for the
-   vanilla quake gamecode. This cannot be used in combination with the
-   :option:`-bsp2` argument.
-
-.. option:: -add [mapfile]
-
-   The given map file will be appended to the base map.
-
-.. option:: -leakdist [n]
-
-   Space between leakfile points (default 0, which does not write any inbetween points)
+Subdivision Options
+~~~~~~~~~~~~~~~~~~~
 
 .. option:: -subdivide [n]
 
@@ -236,13 +252,8 @@ Options
    Change global lmscale (force :bmodel-key:`_lmscale` key on all entities).
    Outputs the LMSCALE BSPX lump.
 
-.. option:: -software
-
-   Change settings to allow for (or make adjustments to optimize for the lack of) software support.
-
-.. option:: -nosoftware
-
-   Explicitly drop support for software renderers.
+WAD and Path Options
+~~~~~~~~~~~~~~~~~~~~
 
 .. option:: -wadpath <dir>
 
@@ -253,10 +264,8 @@ Options
 .. option:: -xwadpath <dir>
 
    Like :option:`-wadpath`, except textures found using the specified path will
-   NOT be embedded into the bsp (equivelent to :option:`-notex`, but for only
-   textures from specific wads). You should use this for wads like
-   halflife's standard wad files, but q1bsps require an engine extension
-   and players are not nearly as likely to have the same wad version.
+   NOT be embedded into the bsp (equivalent to :option:`-notex`, but for only
+   textures from specific wads).
 
 .. option:: -path "/path/to/folder" <multiple allowed>
 
@@ -271,10 +280,23 @@ Options
 
    Opt out of :option:`-defaultpaths`.
 
-.. option:: -oldrottex
+.. option:: -gamedir "relative/path" or "C:/absolute/path"
 
-   Use old method of texturing rotate\_ brushes where the mapper aligns
-   textures for the object at (0 0 0).
+   Override the default mod base directory. If this is not set, or if it is relative, 
+   it will be derived from the input file or the basedir if specified.
+
+.. option:: -basedir "relative/path" or "C:/absolute/path"
+
+   Override the default game base directory. If this is not set, or if it is relative, 
+   it will be derived from the input file or the gamedir if specified.
+
+.. option:: -filepriority archive | loose
+
+   Which types of archives (folders/loose files or packed archives) are higher priority 
+   and chosen first for path searching.
+
+BSP Heuristics Options
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. option:: -midsplitsurffraction n
 
@@ -282,7 +304,7 @@ Options
 
    If 0 < midsplitSurfFraction <= 1, switch to midsplit if the node contains more than this
    fraction of the model's total surfaces. Try 0.15 to 0.5. Works better than maxNodeSize for
-   maps with a 3D skybox (e.g. +-128K unit maps)
+   maps with a 3D skybox (e.g. ±128K unit maps).
 
 .. option:: -midsplitbrushfraction n
 
@@ -290,20 +312,21 @@ Options
 
 .. option:: -maxnodesize [n]
 
-   Switch to the cheap spatial subdivion bsp heuristic when splitting
+   Switch to the cheap spatial subdivision bsp heuristic when splitting
    nodes of this size (in any dimension). This gives much faster qbsp
-   processing times on large maps and should generate better bsp trees
-   as well. From txqbsp-xt, thanks rebb. (default 1024, 0 to disable)
+   processing times on large maps and should generate better bsp trees.
+   Default 1024, 0 to disable.
 
-.. option:: -wrbrushes
-            -bspx
+BSPX Options
+~~~~~~~~~~~~
+
+.. option:: -wrbrushes, -bspx
 
    Includes a list of brushes for brush-based collision. This
    allows for arbitrary collision sizes in engines that support it,
    currently only FTEQW.
 
-.. option:: -wrbrushesonly
-            -bspxonly
+.. option:: -wrbrushesonly, -bspxonly
 
    :option:`-wrbrushes` combined with :option:`-noclip` argument. This is NOT backwards
    compatible.
@@ -316,10 +339,8 @@ Options
 
    Q2 supports this feature natively and this option has no effect.
 
-.. option:: -notriggermodels
-
-   For supported game code only: triggers will not write a model out,
-   and will instead just write out their mins/maxs.
+Texture Options
+~~~~~~~~~~~~~~~
 
 .. option:: -notex
 
@@ -327,23 +348,22 @@ Options
    avoids inclusion of third-party copyrighted images inside your maps,
    but is not backwards compatible but will work in FTEQW and QSS.
 
-   Note that the textures still need to be available to qbsp.
-
-   Technical details: ``LUMP_TEXTURES`` is still written, but each texture
-   within is the ``dmiptex_t`` header only (with no texture data following),
-   with ``offsets`` all set to 0.
+   Note that the textures still need to be available to vmt-bsp.
 
    This only has effect in Q1 family games.
 
 .. option:: -missing_textures_as_zero_size
 
-   Writes missing textures (i.e. ones that qbsp can't find) as 0x0 placeholders.
+   Writes missing textures (i.e. ones that vmt-bsp can't find) as 0x0 placeholders.
 
    This is not backwards compatible and will produce .bsp's that crash
    unsupporting engines. However, it can be useful when you want to run
-   qbsp + light on a map that you are missing the corresponding .wad for.
+   vmt-bsp + vmt-light on a map that you are missing the corresponding .wad for.
 
    This only has effect in Q1 family games.
+
+T-Junction Options
+~~~~~~~~~~~~~~~~~~
 
 .. option:: -notjunc
 
@@ -353,27 +373,24 @@ Options
 
    T-junction fix level:
 
-   none
+   **none**
       Don't attempt to fix T-junctions. This is only for engines or formats
-      that prefer micro-cracks over degenerate triangles. If you don't know
-      what that means, don't set this.
+      that prefer micro-cracks over degenerate triangles.
 
-   rotate
+   **rotate**
       Allow faces' vertices to be rotated to prevent zero-area triangles.
 
-   retopologize
+   **retopologize**
       If a face still has zero-area triangles, allow it to be re-topologized
       by splitting it into multiple fans.
 
-   mwt
-      Attempt to triangulate faces (along with their T-junction fixes)
-      using a `MWT <https://en.wikipedia.org/wiki/Minimum-weight_triangulation>`_
+   **mwt**
+      Attempt to triangulate faces using a 
+      `MWT <https://en.wikipedia.org/wiki/Minimum-weight_triangulation>`_
       first, only falling back to the prior two steps if it fails.
 
-
-.. option:: -noextendedsurfflags
-
-   Don't write .texinfo file, even if it would normally be needed (debug)
+Detail Omission Options
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. option:: -omitdetail
 
@@ -391,87 +408,69 @@ Options
 
    :classname:`func_detail_fence` brushes are omitted from the compile.
 
+Map Conversion Options
+~~~~~~~~~~~~~~~~~~~~~~
+
 .. option:: -convert <fmt>
 
    Convert a .MAP to a different .MAP format. fmt can be:
 
-   quake
+   **quake**
       Q1 vanilla map format.
 
-   quake2
+   **quake2**
       Q2 vanilla map format.
 
-   valve
+   **valve**
       Valve 220 map format.
 
-   bp
+   **bp**
       Brush Primitives format.
 
-   Conversions to "quake" or "quake2"
-   format may not be able to match the texture alignment in the source
-   map, other conversions are lossless. The converted map is saved to
-   <source map name>-<fmt>.map.
+   Conversions to "quake" or "quake2" format may not be able to match the texture 
+   alignment in the source map, other conversions are lossless. The converted map 
+   is saved to ``<source map name>-<fmt>.map``.
+
+Miscellaneous Options
+~~~~~~~~~~~~~~~~~~~~~
+
+.. option:: -add [mapfile]
+
+   The given map file will be appended to the base map.
+
+.. option:: -leakdist [n]
+
+   Space between leakfile points (default 0, which does not write any inbetween points).
+
+.. option:: -oldrottex
+
+   Use old method of texturing rotate\_ brushes where the mapper aligns
+   textures for the object at (0 0 0).
+
+.. option:: -software
+
+   Change settings to allow for (or make adjustments to optimize for the lack of) software support.
+
+.. option:: -nosoftware
+
+   Explicitly drop support for software renderers.
+
+.. option:: -notriggermodels
+
+   For supported game code only: triggers will not write a model out,
+   and will instead just write out their mins/maxs.
+
+.. option:: -noextendedsurfflags
+
+   Don't write .texinfo file, even if it would normally be needed (debug).
 
 .. option:: -includeskip
 
    Emit skip/nodraw faces (default is to discard them). Mainly for Q2RTX.
 
-.. option:: -threads n
-
-   Set number of threads to use. By default, qbsp will attempt to
-   use all available hardware threads.
-
-.. option:: -lowpriority
-
-   Run in a lower priority, to free up headroom for other processes. Enabled by default.
-
 .. option:: -aliasdef <aliases.def> [...]
 
    Adds alias definition files, which can transform entities in the .map into other entities.
-
-   For example, given this alias definition file:
-
-   .. code-block:: none
-      :caption: aliases.def
-
-      misc_torch1 // source classname
-      {
-      "classname" "misc_model" // classname to transform into
-      "model" "torch1.mdl"
-      }
-
-      misc_torch2
-      {
-      "classname" "misc_model"
-      "model" "torch2.mdl"
-      }
-
-   and an input map file:
-
-   .. code-block:: none
-
-      {
-      "classname" "misc_torch1"
-      "model" "override.mdl"
-      }
-
-      {
-      "classname" "misc_torch2"
-      }
-
-   the following will be output in the .bsp's entity lump:
-
-   .. code-block:: none
-
-      {
-      "classname" "misc_model"
-      "model" "override.mdl" // key/value from map takes precedence
-      }
-
-      {
-      "classname" "misc_model"
-      "model" "torch2.mdl" // key/value from alias file
-      }
 
 .. option:: -texturedefs "path/to/file.def" <multiple allowed>
 
@@ -484,6 +483,22 @@ Options
 .. option:: -microvolume n
 
    Microbrush volume.
+
+.. option:: -maxedges n
+
+   The max number of edges/vertices on a single face before it is split into another face. 
+   0 means unlimited. Default is 0 for Q2, and 64 for Q1.
+
+.. option:: -worldextent n
+
+   Explicitly provide world extents; 0 will auto-detect. Default 0.
+
+.. option:: -forceprt1
+
+   Force a PRT1 output file even if PRT2 is required for vis.
+
+Debug Options
+~~~~~~~~~~~~~
 
 .. option:: -outsidedebug
 
@@ -513,20 +528,6 @@ Options
 
    Avoid deleting the .prt file on leaking maps.
 
-.. option:: -maxedges n
-
-   The max number of edges/vertices on a single face before it is split into another face. 0 means unlimited.
-
-   Default is 0 for Q2, and 64 for Q1.
-
-.. option:: -worldextent n
-
-   Explicitly provide world extents; 0 will auto-detect. Default 0.
-
-.. option:: -forceprt1
-
-   Force a PRT1 output file even if PRT2 is required for vis.
-
 .. option:: -objexport
 
    Export the map file as .OBJ models during various compilation phases.
@@ -535,56 +536,51 @@ Options
 Game Path Specification
 -----------------------
 
-To compile a Q2 map, the compilers usually need to be able to locate an installation of the game. e.g. the .map might reference a texture name like ``e1u1/clip``, but qbsp needs to open the corresponding .wal file to look up the content/surface flags (playerclip, etc.) which are then written to the .bsp.
+To compile a Q2 map, the compilers usually need to be able to locate an installation of the game. 
+For example, the .map might reference a texture name like ``e1u1/clip``, but vmt-bsp needs to open 
+the corresponding .wal file to look up the content/surface flags (playerclip, etc.) which are then 
+written to the .bsp.
 
-We use the terminology:
+Terminology
+~~~~~~~~~~~
 
-basedir
-  The directory containing the base game (e.g. ``id1`` or ``baseq2``). Can be an absolute path, e.g. ``c:/quake2/baseq2`` or ``c:/quake/id1``.
+**basedir**
+   The directory containing the base game (e.g. ``id1`` or ``baseq2``). 
+   Can be an absolute path, e.g. ``c:/quake2/baseq2`` or ``c:/quake/id1``.
 
-gamedir
-  Optional mod directory, e.g. ``ad`` or ``c:/quake/ad``. If a gamedir is specified it will be added to the search path at a higher priority than the basedir.
+**gamedir**
+   Optional mod directory, e.g. ``ad`` or ``c:/quake/ad``. If a gamedir is specified 
+   it will be added to the search path at a higher priority than the basedir.
 
-The common cases are:
+Common Cases
+~~~~~~~~~~~~
 
-- place your .map in ``<quake2>/baseq2/maps`` and compile it there, qbsp will auto detect the basedir/gamedir.
-- for compiling a .map located elsewhere, use e.g.:
+* Place your .map in ``<quake2>/baseq2/maps`` and compile it there — vmt-bsp will auto-detect the basedir/gamedir.
 
-  .. code::
+* For compiling a .map located elsewhere:
 
-     qbsp -basedir "c:/quake2/baseq2" input.map
+  .. code-block:: bash
+
+     vmt-bsp -basedir "c:/quake2/baseq2" input.map
 
   or
 
-  .. code::
+  .. code-block:: bash
 
-     qbsp -basedir "c:/quake2/baseq2" -gamedir mymod input.map
+     vmt-bsp -basedir "c:/quake2/baseq2" -gamedir mymod input.map
 
-.. option:: -gamedir "relative/path" or "C:/absolute/path"
-
-   Override the default mod base directory. if this is not set, or if it is relative, it will be derived from
-   the input file or the basedir if specified.
-
-.. option:: -basedir "relative/path" or "C:/absolute/path"
-
-   Override the default game base directory. if this is not set, or if it is relative, it will be derived
-   from the input file or the gamedir if specified.
-
-.. option:: -filepriority archive | loose
-
-   Which types of archives (folders/loose files or packed archives) are higher priority and chosen first
-   for path searching.
 
 Special Texture Names
 ---------------------
 
-The contents inside a brush depend on the texture name(s) assigned to
-it.
+The contents inside a brush depend on the texture name(s) assigned to it.
 
 By default brush contents are solid unless they have a special name.
 All faces of a brush must have textures which indicate the same
-contents. Mixed content types will cause qbsp to print an error and
-exit.
+contents. Mixed content types will cause vmt-bsp to print an error and exit.
+
+Liquids
+~~~~~~~
 
 .. texture:: *slime
              *lava
@@ -598,24 +594,27 @@ exit.
              !lava
              !
 
-   In all Q1-like games, for compatibility with Half-Life maps, names beginning with ``!`` are treated the same
-   as names beginning with ``*`` and create liquids.
+   In all Q1-like games, for compatibility with Half-Life maps, names beginning with ``!`` 
+   are treated the same as names beginning with ``*`` and create liquids.
+
+Special Surfaces
+~~~~~~~~~~~~~~~~
 
 .. texture:: skip
 
    Any surfaces assigned a texture name of *skip* will be compiled into the
    bsp as invisible surfaces. Solid surfaces will still be solid (e.g. the
-   play can't walk or shoot through them) but they will not be drawn.
+   player can't walk or shoot through them) but they will not be drawn.
    Water, slime and lava surfaces can be made invisible using the texture
    names *\*waterskip*, *\*slimeskip* and *\*lavaskip* respectively.
 
 .. texture:: hint
 
-   Hint surfaces cause a bsp split and portal to be generated the on the
-   surface plane, after which they are removed from the final bsp - they
+   Hint surfaces cause a bsp split and portal to be generated on the
+   surface plane, after which they are removed from the final bsp — they
    are neither visible, nor structural. Strategic placement of hint
    surfaces can be used by a map author to optimise the PVS calculations so
-   as to limit overdraw by the engine (see also: **vis**\ (1)).
+   as to limit overdraw by the engine (see also: :doc:`vis`).
 
    Use a texture with the name *hintskip* on any surfaces of a hint brush
    which you don't want to generate bsp splits or portals. All surfaces of
@@ -625,52 +624,29 @@ exit.
 
    An origin brush (all faces textured with "origin") can be added to a
    brush entity (but not detail or compiler-internal entities like
-   func_group). Doing so causes all of the brushes in the brush entitiy to
+   func_group). Doing so causes all of the brushes in the brush entity to
    be translated so the center of the origin brush lines up with 0 0 0. The
    entity key "origin" is then automatically set on the brush entity to the
-   original cooridnates of the center of the "origin" brush before it was
+   original coordinates of the center of the "origin" brush before it was
    translated to 0 0 0.
 
-   In Hexen 2, origin brushes are the native way of marking the center
-   point of the rotation axis for rotating entities.
-
-   In Quake, origin brushes can be used to make some map hacks easier to
-   set up that would otherwise require placing brushes at the world origin
-   and entering an "origin" value by hand.
-
-   Note that, unlike the Hipnotic rotation support in QBSP, using origin
-   brushes does not cause the model bounds to be expanded. (With Hipnotic
-   rotation this was to ensure that the model is not vis culled, regardless
-   of its rotated angle.) Origin brushes are useful for more than just
-   rotation, and doing this bounds expansion would break some use cases, so
-   if you're going to rotate a model with an origin brush you might need to
-   expand the bounds of it a bit using clip brushes so it doesn't get vis
-   culled.
 
 External Map Prefab Support
 ---------------------------
 
-This qbsp has a prefab system using a point entity named
-"misc_external_map". The idea is, each "misc_external_map" imports
-brushes from an external .map file, applies rotations specified by the
-"_external_map_angles" key, then translates them to the "origin" key of
-the "misc_external_map" entity. Finally, the classname of the
-"misc_external_map" is switched to the one provided by the mapper in the
-"_external_map_classname" key. (The "origin" key is also cleared to "0 0
-0" before saving the .bsp).
+This vmt-bsp has a prefab system using a point entity named ``misc_external_map``. 
+The idea is, each ``misc_external_map`` imports brushes from an external .map file, 
+applies rotations specified by the ``_external_map_angles`` key, then translates them 
+to the "origin" key of the ``misc_external_map`` entity. Finally, the classname of the
+``misc_external_map`` is switched to the one provided by the mapper in the
+``_external_map_classname`` key. (The "origin" key is also cleared to "0 0 0" before 
+saving the .bsp).
 
-The external .map file should consist of worldspawn brushes only,
-although you can use func_group for editing convenience. Brush entities
-are merged with the worldspawn brushes during import. All worldspawn
-keys, and any point entities are ignored. Currently, this means that the
-"wad" key is not handled, so you need to add any texture wads required
+The external .map file should consist of worldspawn brushes only, although you can use 
+func_group for editing convenience. Brush entities are merged with the worldspawn brushes 
+during import. All worldspawn keys, and any point entities are ignored. Currently, this 
+means that the "wad" key is not handled, so you need to add any texture wads required
 by the external .map file to your main map.
-
-Note that you can set other entity keys on the "misc_external_map" to
-configure the final entity type. e.g. if you set
-"_external_map_classname" to "func_door", you can also set a
-"targetname" key on the "misc_external_map", or any other keys for
-"func_door".
 
 .. other-key:: _external_map
    
@@ -678,14 +654,14 @@ configure the final entity type. e.g. if you set
 
 .. other-key:: _external_map_classname
    
-   What entity you want the external map to turn in to. You can use
-   internal qbsp entity types such as :classname:`func_detail`, or a regular bmodel
+   What entity you want the external map to turn into. You can use
+   internal vmt-bsp entity types such as :classname:`func_detail`, or a regular bmodel
    classname like "func_wall" or "func_door".
 
 .. other-key:: _external_map_angles
 
    Rotation for the prefab, "pitch yaw roll" format. Assuming the
-   exernal map is facing the +X axis, positive pitch is down. Yaw of
+   external map is facing the +X axis, positive pitch is down. Yaw of
    180, for example, would rotate it to face -X.
 
 .. other-key:: _external_map_angle
@@ -698,79 +674,32 @@ configure the final entity type. e.g. if you set
    Scale factor for the prefab, defaults to 1. Either specify a single
    value or three scales, "x y z".
 
+
 Detail Brush Support
 --------------------
 
-This version of qbsp supports detail brushes which are similar in
-concept to Quake 2's detail brushes. They don't seal the map (previous
-versions did).
+This version of vmt-bsp supports detail brushes which are similar in concept to 
+Quake 2's detail brushes. They don't seal the map (previous versions did).
 
 To be compatible with existing Quake 1 mapping tools, detail brushes can
-be added by creating an entity with classname "func_detail". When qbsp
+be added by creating an entity with classname ``func_detail``. When vmt-bsp
 reads the map file, it will add any brushes included in a func_detail
 entity into the worldspawn as details and remove the func_detail entity.
 Any number of func_detail entities can be used (useful for grouping) and
 all included brushes will be added to the worldspawn.
 
-Here is an example entity definition suitable to add the the .QC files
-used by BSP Editor:
-
-::
-
-       /*QUAKED func_detail (0.5 0.5 0.9) ?
-       Detail brushes add visual details to
-       the world, but do not block visibility.
-       func_detail entities are merged into
-       the worldspawn entity by the qbsp compiler
-       and do not appear as separate entities in
-       the compiled bsp.
-       */
-
-For WorldCraft in .FGD format (untested):
-
-::
-
-       @SolidClass color(128 128 230) = func_detail: "Detail" []
-
-For Radiant in .ENT format:
-
-::
-
-       <group name="func_detail" color="0 .5 .8">
-       Detail brushes add visual details to the world, but do not
-       block visibility. func_detail entities are merged into the
-       worldspawn entity by the qbsp compiler and do not appear as
-       separate entities in the compiled bsp.
-       </group>
-
-What should be written to the .map file is a simple entity with one or
-more brushes. E.g.:
-
-::
-
-       {
-       "classname" "func_detail"
-       {
-       ( -176  80  0 ) ( -208  80  0 ) ( -208  48  0 ) COP1_1 0 0 0 1.0 1.0
-       ( -192 -80 64 ) ( -208 -80  0 ) ( -192 -64 64 ) COP1_1 0 0 0 1.0 1.0
-       ( -176 -80  0 ) ( -192 -80 64 ) ( -176 -64  0 ) COP1_1 0 0 0 1.0 1.0
-       ( -16   48  0 ) (  -16  64 64 ) (    0  48  0 ) COP1_1 0 0 0 1.0 1.0
-       ( -16   64 64 ) (  -16  80  0 ) (    0  64 64 ) COP1_1 0 0 0 1.0 1.0
-       }
-       }
-
-When qbsp detects detail brushes, it outputs a modified portal file
+When vmt-bsp detects detail brushes, it outputs a modified portal file
 format with the header PRT2 (default is PRT1). This portal file contains
-extra information needed by vis to compute the potentially visible set
-(PVS) for the map/bsp. So you will also need a vis util capable of
-processing the PRT2 file format.
+extra information needed by vmt-vis to compute the potentially visible set
+(PVS) for the map/bsp.
 
-Compiler-internal bmodels
+
+Compiler-Internal Bmodels
 -------------------------
 
 .. classname:: func_group
 
-   Bmodel that has no effect; qbsp moves the brushes back into the worldspawn entity.
+   Bmodel that has no effect; vmt-bsp moves the brushes back into the worldspawn entity.
 
    The usefulness comes from the ability to set :ref:`model-entity-keys` on the brushes inside the func_group.
 
@@ -800,188 +729,45 @@ Compiler-internal bmodels
 
 .. classname:: func_detail_fence
 
-   Similar to :classname:`func_detail_wall` except it's suitable for fence textures,
-   never clips away world faces. Useful for fences, grates, etc., that are
+   Similar to func_detail_wall except it's suitable for fence textures, 
+   never clips away world faces. Useful for fences, grates, etc., that are 
    solid and block gunfire.
 
-   Intersecting func_detail_fence brushes don't clip each other.
 
+See Also
+--------
 
-.. _model-entity-keys:
+* :doc:`vis` — Visibility compiler
+* :doc:`light` — Lighting compiler
 
-Model Entity Keys
------------------
-
-.. bmodel-key:: "_lmscale" "n"
-
-   Generates an LMSHIFT bspx lump for use by a light util. Note that
-   both scaled and unscaled lighting will normally be used.
-
-   .. todo:: This is broken since 2.0.0-alpha1
-
-.. bmodel-key:: "_mirrorinside" "n"
-
-   Set to 1 to save mirrored inside faces for bmodels, so when the
-   player view is inside the bmodel, they will still see the faces.
-   (e.g. for func_water, func_illusionary, :classname:`func_detail_illusionary`, :classname:`func_detail_fence`, etc.)
-
-.. bmodel-key:: "_chop_order" "n"
-
-   Override the order of brushes in the map file, which affects which face "wins" in the CSG phase when there are
-   multiple overlapping coplanar brushes. Provided since most .map editors don't directly expose the brush order.
-
-   All brushes are initially 0; setting this to 1 would make a brush appear after anything in the map file, and so
-   clip away coplanar faces from other brushes.
-
-   For example, you could make a :classname:`func_group` with "_chop_order" "1", and apply it to a light fixture
-   which is coplanar with a floor or ceiling, to ensure the light fixture is visible in-game, without going to the
-   trouble of cutting a hole in the floor/ceiling for it.
-
-.. bmodel-key:: "_hulls" "n"
-
-   Bitmap ("Flags" type in FGD) that selects for which hulls collision data
-   will be generated. eg. a decimal value of 11 (0b1011) would generate hull 0, hull 1,
-   and hull 3.
-   Faces are computed using data from hull 0, not generating this hull will
-   prevent a bmodel from being rendered, acting as a CLIP brush only active for
-   the specified hulls.
-
-   Defaults to 0 which will generate clipnodes for all hulls.
-
-.. bmodel-key:: "_chop" "n"
-
-   Set to 0 to prevent these brushes from being chopped; this is an alias for setting :bmodel-key:`_chop_order` to 1.
-
-   .. deprecated:: 2.0.0
-      Prefer the more flexible :bmodel-key:`_chop_order` instead.
-
-.. bmodel-key:: "_noclipfaces" "n"
-
-   Set to 1 to suppress the usual qbsp behaviour where two touching brushes of the same content type will have the
-   touching portion clipped away.
-
-   This is useful for things that can be seen inside, such as :classname:`func_detail_illusionary`,
-   :classname:`func_detail_fence`, liquids, bmodels, etc.
-
-   Behaviour is unspecified for coplanar faces; in 0.18 it caused z-fighting, and in 2.0.0-alpha it doesn't currently.
-
-
-Other Special-Purpose Entities
-------------------------------
-
-.. classname:: func_illusionary_visblocker
-
-   For creating vis-blocking illusionary brushes (similar to
-   :classname:`func_detail_illusionary` or "func_illusionary". The player can walk
-   through them.) This gives the same effect as water brushes when the
-   :option:`-notranswater` flag is used, except the interior of these brushes are
-   saved as CONTENTS_EMPTY. One thing to be aware of is, if the player's
-   view is very close to the faces of these brushes, they might be able to
-   see into the void (depending on the engine). Fitzquake family engines
-   have a workaround for this that is enabled if the brushes are textured
-   with a water texture ("*" prefix).
-
-Map Compatibility
------------------
-
-In addition to standard Quake 1 .map files, ericw-tools QBSP is
-compatible with:
-
--  Floating point brush coordinates and texture alignments
-
--  Valve's 220 map format as produced by the *Hammer* editor
-
--  Extended texture positioning as supported by the *QuArK* editor
-
--  Standard Quake 2 map format (leading paths in texture names are
-   stripped and any extra surface properties are ignored)
-
--  Brush Primitives produce by Radiant editors (normally a Quake 3
-   format)
-
-Metadata formats
-----------------
-
-.wal_json
-=========
-
-For Q2 mapping, .wal textures contain metadata specifying the texture's content flags, surface flags, and "value",
-which are used if the mapper doesn't override them in the .map file. For example, a lava texture can default to
-emitting light, having a lava content type, and having a surface warp effect.
-
-The final values get baked into the .bsp and so game engine doesn't need the metadata for anything.
-
-For increased flexibility, we support a JSON metadata format, which can override the .wal's metadata or provide
-it when using image format like .tga instead of .wal.
-
-To use a .wal_json file, place it in the same directory where the .wal would be, e.g.
-``baseq2/textures/e1u1/water.wal_json`` would correspond to: ``baseq2/textures/e1u1/water.png``.
-
-All of the values are optional.
-
-.. code:: json
-
-   {
-       // valid instances of "contents"; either:
-       // - a case-insensitive string containing the textual representation
-       //   of the content type
-       // - a number
-       // - an array of the two above, which will be OR'd together
-       "contents": [ "SOLID", 8 ],
-       "contents": 24,
-       "contents": "SOLID",
-
-       // valid instances of "flags"; either:
-       // - a case-insensitive string containing the textual representation
-       //   of the surface flags
-       // - a number
-       // - an array of the two above, which will be OR'd together
-       "flags": [ "SKY", 16 ],
-       "flags": 24,
-       "flags": "SKY",
-
-       // "value" must be an integer
-       "value": 1234,
-
-       // "animation" must be the name of the next texture in
-       // the chain.
-       "animation": "e1u1/comp2",
-
-       // width/height are allowed to be supplied in order to
-       // have the editor treat the surface as if its dimensions
-       // are these rather than the ones pulled in from the image
-       // itself. they must be integers.
-       "width": 64,
-       "height": 64,
-
-       // color to use for lighting bounces. if specified, this
-       // is used instead of averaging the pixels of the image.
-       "color": [255, 128, 64]
-   }
 
 Author
 ------
 
+| Based on original work by id Software
+| Kevin Shanahan (aka Tyrann) — http://disenchant.net
 | Eric Wasylishen
-| Kevin Shanahan (aka Tyrann) - http://disenchant.net
-| Based on source provided by id Software and Greg Lewis
+| VibeyMapTools contributors
+
 
 Reporting Bugs
 --------------
 
-| Please post bug reports at
-  https://github.com/ericwa/ericw-tools/issues.
-| Improvements to the documentation are welcome and encouraged.
+Please post bug reports at https://github.com/themuffinator/VibeyMapTools/issues.
+
+Improvements to the documentation are welcome and encouraged.
+
 
 Copyright
 ---------
 
-| Copyright (C) 2017 Eric Wasylishen
-| Copyright (C) 2013 Kevin Shanahan
-| Copyright (C) 1997 Greg Lewis
-| Copyright (C) 1997 id Software
-| License GPLv2+: GNU GPL version 2 or later
-| <http://gnu.org/licenses/gpl2.html>.
+| Copyright © 2024 VibeyMapTools contributors
+| Copyright © 2017 Eric Wasylishen
+| Copyright © 2013 Kevin Shanahan
+| Copyright © 1997 id Software
 
-This is free software: you are free to change and redistribute it. There
-is NO WARRANTY, to the extent permitted by law.
+License GPLv3: GNU GPL version 3 or later
+https://gnu.org/licenses/gpl-3.0.html
+
+This is free software: you are free to change and redistribute it. 
+There is NO WARRANTY, to the extent permitted by law.

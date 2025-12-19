@@ -11,7 +11,7 @@ list(GET VIBEY_VERSION_PARTS 2 VIBEY_VERSION_PATCH)
 project (VibeyMapTools VERSION ${VIBEY_VERSION_STRING})
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/3rdparty/Catch2/extras")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/extern/Catch2/extras")
 
 # Grab the git describe output and store it in GIT_DESCRIBE
 # Thanks to http://xit0.org/2013/04/cmake-use-git-branch-and-commit-details-in-project/
@@ -49,7 +49,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "M
 	message(STATUS "working around exceptions not being enabled by default on clang-cl")
 endif()
 
-include_directories(include)
+include_directories(src/include)
 
 find_package (Threads)
 
@@ -81,7 +81,7 @@ add_definitions(-DVIBEYMAPTOOLS_VERSION="${VIBEY_VERSION_FULL}")
 
 # Configure version header
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hh.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/include/version.hh.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/version.hh"
     @ONLY
 )
@@ -185,27 +185,27 @@ set(TEST_QUAKE2_MAP_EXPORT_DIR "" CACHE PATH "When running unit tests, export Qu
 set(TEST_HEXEN2_MAP_EXPORT_DIR "" CACHE PATH "When running unit tests, export Hexen 2 maps to this directory (useful for testing in game)")
 set(TEST_HALFLIFE_MAP_EXPORT_DIR "" CACHE PATH "When running unit tests, export Half-Life maps to this directory (useful for testing in game)")
 
-add_subdirectory(3rdparty)
-add_subdirectory(common)
-add_subdirectory(bspinfo)
-add_subdirectory(bsputil)
-add_subdirectory(light)
-add_subdirectory(qbsp)
-add_subdirectory(vis)
-add_subdirectory(maputil)
+add_subdirectory(extern)
+add_subdirectory(src/common)
+add_subdirectory(src/bspinfo)
+add_subdirectory(src/bsputil)
+add_subdirectory(src/light)
+add_subdirectory(src/qbsp)
+add_subdirectory(src/vis)
+add_subdirectory(src/maputil)
 
 option(DISABLE_TESTS "Disables Tests" OFF)
 option(DISABLE_DOCS "Disables Docs" OFF)
 option(ENABLE_LIGHTPREVIEW "Enable light preview tool" ON)
 
 if (ENABLE_LIGHTPREVIEW)
-	add_subdirectory(lightpreview)
+	add_subdirectory(src/lightpreview)
 endif ()
 
 if(NOT DISABLE_TESTS)
 	# just creates testmaps.hh with absolute path to the testmaps source directory.
 	# include it as #include <testmaps.hh>
-	configure_file(testmaps.hh.in testmaps.hh @ONLY)
+	configure_file(tests/testmaps.hh.in testmaps.hh @ONLY)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 	add_subdirectory(tests)
 

@@ -1,12 +1,12 @@
 [submodule "lib/fmt"]
-	path = 3rdparty/fmt
+	path = extern/fmt
 	url = https://github.com/fmtlib/fmt
-[submodule "3rdparty/nanobench"]
-	path = 3rdparty/nanobench
+[submodule "extern/nanobench"]
+	path = extern/nanobench
 	url = https://github.com/martinus/nanobench
-[submodule "3rdparty/pareto"]
-	path = 3rdparty/pareto
+[submodule "extern/pareto"]
+	path = extern/pareto
 	url = https://github.com/alandefreitas/pareto.git
-[submodule "3rdparty/jsoncpp"]
-	path = 3rdparty/jsoncpp
+[submodule "extern/jsoncpp"]
+	path = extern/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp

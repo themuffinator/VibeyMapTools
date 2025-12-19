@@ -25,7 +25,7 @@ This document describes how to build VibeyMapTools from source.
 
 ```powershell
 # Clone with submodules
-git clone --recursive https://github.com/user/VibeyMapTools.git
+git clone --recursive https://github.com/themuffinator/VibeyMapTools.git
 cd VibeyMapTools
 
 # Configure
@@ -44,7 +44,7 @@ cmake --build . --config Release
 sudo apt install cmake build-essential libembree-dev libtbb-dev
 
 # Clone with submodules
-git clone --recursive https://github.com/user/VibeyMapTools.git
+git clone --recursive https://github.com/themuffinator/VibeyMapTools.git
 cd VibeyMapTools
 
 # Build
@@ -60,7 +60,7 @@ make -j$(nproc)
 brew install cmake embree tbb
 
 # Clone and build
-git clone --recursive https://github.com/user/VibeyMapTools.git
+git clone --recursive https://github.com/themuffinator/VibeyMapTools.git
 cd VibeyMapTools
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -111,11 +111,11 @@ After a successful build, you'll find in `build/`:
 
 | Binary | Description |
 |--------|-------------|
-| `qbsp` | BSP compiler - converts .map to .bsp |
-| `vis` | Visibility compiler - calculates PVS |
-| `light` | Light compiler - calculates lightmaps |
-| `bspinfo` | BSP information utility |
-| `bsputil` | BSP manipulation utility |
+| `vmt-bsp` | BSP compiler - converts .map to .bsp |
+| `vmt-vis` | Visibility compiler - calculates PVS |
+| `vmt-light` | Light compiler - calculates lightmaps |
+| `vmt-bspinfo` | BSP information utility |
+| `vmt-bsputil` | BSP manipulation utility |
 | `lightpreview` | Real-time lighting preview (experimental) |
 
 ## Running Tests
@@ -165,7 +165,7 @@ python tests/regression.py --update
 1. Create feature branch
 2. Implement changes
 3. Update tests in `tests/`
-4. Update documentation (CHANGELOG.md, wiki.md)
+4. Update documentation (CHANGELOG.md, WIKI.md)
 5. Submit pull request
 
 ## Versioning

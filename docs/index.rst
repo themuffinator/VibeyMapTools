@@ -1,12 +1,34 @@
-.. ericw-tools documentation master file, created by
-   sphinx-quickstart on Wed Jan 26 17:21:51 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. VibeyMapTools documentation master file
 
-Welcome to ericw-tools's documentation!
-=======================================
+==================================
+VibeyMapTools Documentation
+==================================
+
+**VibeyMapTools** (VMT) is a modern BSP compilation toolset for Quake engine mapping.
+
+.. note::
+   
+   This project is a fork of `ericw-tools <https://github.com/ericwa/ericw-tools>`_ 
+   with rebranding, modernization, and continued development.
+
+Quick Start
+===========
+
+.. code-block:: bash
+
+   # Basic compilation
+   vmt-bsp mymap.map
+   vmt-vis mymap.bsp
+   vmt-light mymap.bsp
+
+   # High-quality lighting
+   vmt-light -extra4 -bounce 2 -denoise mymap.bsp
+
+Tool Reference
+==============
 
 .. toctree::
+   :maxdepth: 2
    
    qbsp
    vis
@@ -15,11 +37,24 @@ Welcome to ericw-tools's documentation!
    bsputil
    maputil
    lightpreview
+
+Appendix
+========
+
+.. toctree::
+   :maxdepth: 1
+
    changelog
 
-
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`
 * :ref:`search`
+
+Links
+=====
+
+* `GitHub Repository <https://github.com/themuffinator/VibeyMapTools>`_
+* `Issue Tracker <https://github.com/themuffinator/VibeyMapTools/issues>`_
+* `Releases <https://github.com/themuffinator/VibeyMapTools/releases>`_

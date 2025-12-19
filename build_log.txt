@@ -1,0 +1,596 @@
+MSBuild version 18.3.0-preview-25570-20+708535641 for .NET Framework
+
+  1>Checking Build System
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/extern/fmt/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/build/_deps/googletest-src/googlemock/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/build/_deps/googletest-src/googlemock/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/build/_deps/googletest-src/googletest/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/extern/jsoncpp/src/lib_json/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/extern/nanobench/CMakeLists.txt
+  gtest-all.cc
+  gtest-all.cc
+  gtest-all.cc
+  json_reader.cpp
+  nanobench.cpp
+  format.cc
+  json_value.cpp
+  json_writer.cpp
+  os.cc
+  nanobench.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\extern\nanobench\Release\nanobench.lib
+  jsoncpp_static.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\extern\jsoncpp\src\lib_json\Release\jsoncpp.lib
+  fmt.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\extern\fmt\Release\fmt.lib
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/common/CMakeLists.txt
+  bspinfo.cc
+  gmock-all.cc
+  gmock-all.cc
+  gtest.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\lib\Release\gtest.lib
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/build/_deps/googletest-src/googletest/CMakeLists.txt
+  gtest_main.cc
+  gmock_main.cc
+  gtest_main.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\lib\Release\gtest_main.lib
+  gmock.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\lib\Release\gmock.lib
+  bspfile.cc
+  gmock_main.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\lib\Release\gmock_main.lib
+  bspfile_common.cc
+  bspfile_generic.cc
+  bspfile_q1.cc
+  bspfile_q2.cc
+  bsputils.cc
+  bspxfile.cc
+  cmdlib.cc
+  decompile.cc
+  entdata.cc
+  litfile.cc
+  lightgrid.cc
+  log.cc
+  mathlib.cc
+  parser.cc
+  qvec.cc
+  threads.cc
+  fs.cc
+  imglib.cc
+  Compiling...
+  settings.cc
+  prtfile.cc
+  mapfile.cc
+  common.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\src\common\Release\common.lib
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/vis/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/light/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/bspinfo/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/qbsp/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/maputil/CMakeLists.txt
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/bsputil/CMakeLists.txt
+  cmake_pch.cxx
+  cmake_pch.cxx
+  cmake_pch.cxx
+  cmake_pch.cxx
+  cmake_pch.cxx
+  cmake_pch.cxx
+  flow.cc
+  trace_embree.cc
+  main.cc
+  bsputil.cc
+  maputil.cc
+  brush.cc
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\trace_embree.hh(16,7): warning C4099: 'modelinfo_t': type name first seen using 'struct' now seen using 'class' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(8,8):
+      see declaration of 'modelinfo_t'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\light.hh(72,7): warning C4099: 'modelinfo_t': type name first seen using 'struct' now seen using 'class' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(8,8):
+      see declaration of 'modelinfo_t'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\light.hh(214,7): warning C4099: 'modelinfo_t': type name first seen using 'struct' now seen using 'class' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\light.hh(214,7):
+      see declaration of 'modelinfo_t'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(14,8): warning C4099: 'modelinfo_t': type name first seen using 'class' now seen using 'struct' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\light.hh(214,7):
+      see declaration of 'modelinfo_t'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(26,5): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(26,26): error C2143: syntax error: missing ';' before '*' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(26,44): error C2238: unexpected token(s) preceding ';' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(67,33): error C2327: 'vibey::light::LightContext::light_settings': is not a type name, static, or enumerator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(67,33):
+      see declaration of 'vibey::light::LightContext::light_settings'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(67,27): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(67,48): error C2143: syntax error: missing ',' before '*' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(68,19): error C2065: 'opts': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(69,15): error C2065: 'b': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(70,5): error C2789: 'vibey::light::LightContext::light_settings': an object of const-qualified type must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(26,11):
+      see declaration of 'vibey::light::LightContext::light_settings'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(68,11): error C2614: 'vibey::light::LightContext': illegal member initialization: 'options' is not a base or member [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\trace_embree.cc(148,45): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\trace_embree.cc(148,43): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\trace_embree.cc(575,49): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\trace_embree.cc(575,47): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/trace_embree.cc')
+  
+  vis.cc
+  entities.cc
+  csg.cc
+C:\Users\djdac\source\repos\EricW-tools\src\qbsp\brush.cc(611,49): error C2064: term does not evaluate to a function taking 0 arguments [C:\Users\djdac\source\repos\EricW-tools\build\src\qbsp\libqbsp.vcxproj]
+  (compiling source file '../../../src/qbsp/brush.cc')
+  
+  libmaputil.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\src\maputil\Release\libmaputil.lib
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/maputil/CMakeLists.txt
+  cmake_pch.cxx
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(8,8): warning C4099: 'modelinfo_t': type name first seen using 'class' now seen using 'struct' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/entities.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\light.hh(214,7):
+      see declaration of 'modelinfo_t'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1095,34): error C2065: 'extended_content_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/entities.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1109,38): error C2065: 'extended_content_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/entities.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,30): error C2259: 'raystream_intersection_t': cannot instantiate abstract class [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/entities.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\trace_embree.hh(146,7):
+      see declaration of 'raystream_intersection_t'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,30):
+      due to following members:
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,30):
+      'void RayStream::resize(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(38,18):
+      see declaration of 'RayStream::resize'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,30):
+      'void RayStream::reserve(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(39,18):
+      see declaration of 'RayStream::reserve'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,30):
+      'void RayStream::clearPushedRays(void)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(40,18):
+      see declaration of 'RayStream::clearPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,30):
+      'size_t RayStream::numPushedRays(void) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(41,20):
+      see declaration of 'RayStream::numPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,30):
+      'const RayPayload &RayStream::getPayload(size_t) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(44,31):
+      see declaration of 'RayStream::getPayload'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,32): error C2259: 'raystream_intersection_t': cannot instantiate abstract class [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/entities.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\trace_embree.hh(146,7):
+      see declaration of 'raystream_intersection_t'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,32):
+      due to following members:
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,32):
+      'void RayStream::resize(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(38,18):
+      see declaration of 'RayStream::resize'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,32):
+      'void RayStream::reserve(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(39,18):
+      see declaration of 'RayStream::reserve'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,32):
+      'void RayStream::clearPushedRays(void)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(40,18):
+      see declaration of 'RayStream::clearPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,32):
+      'size_t RayStream::numPushedRays(void) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(41,20):
+      see declaration of 'RayStream::numPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1167,32):
+      'const RayPayload &RayStream::getPayload(size_t) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(44,31):
+      see declaration of 'RayStream::getPayload'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1371,41): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/entities.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\entities.cc(1371,39): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/entities.cc')
+  
+  Generating code
+  ltface.cc
+  Previous IPDB not found, fall back to full compilation.
+  map.cc
+  soundpvs.cc
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(14,8): warning C4099: 'modelinfo_t': type name first seen using 'class' now seen using 'struct' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\light.hh(214,7):
+      see declaration of 'modelinfo_t'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(26,5): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(26,26): error C2143: syntax error: missing ';' before '*' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(26,44): error C2238: unexpected token(s) preceding ';' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(67,33): error C2327: 'vibey::light::LightContext::light_settings': is not a type name, static, or enumerator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(67,33):
+      see declaration of 'vibey::light::LightContext::light_settings'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(67,27): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(67,48): error C2143: syntax error: missing ',' before '*' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(68,19): error C2065: 'opts': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(69,15): error C2065: 'b': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(70,5): error C2789: 'vibey::light::LightContext::light_settings': an object of const-qualified type must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(26,11):
+      see declaration of 'vibey::light::LightContext::light_settings'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\lightcontext.hh(68,11): error C2614: 'vibey::light::LightContext': illegal member initialization: 'options' is not a base or member [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(8,8): warning C4099: 'modelinfo_t': type name first seen using 'class' now seen using 'struct' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\light.hh(214,7):
+      see declaration of 'modelinfo_t'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(446,56): error C2676: binary '[': 'const texvecf' does not define this operator or a conversion to a type acceptable to the predefined operator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(446,73): error C2676: binary '[': 'const texvecf' does not define this operator or a conversion to a type acceptable to the predefined operator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(446,90): error C2676: binary '[': 'const texvecf' does not define this operator or a conversion to a type acceptable to the predefined operator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(446,110): error C2676: binary '[': 'const texvecf' does not define this operator or a conversion to a type acceptable to the predefined operator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(447,56): error C2676: binary '[': 'const texvecf' does not define this operator or a conversion to a type acceptable to the predefined operator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(447,73): error C2676: binary '[': 'const texvecf' does not define this operator or a conversion to a type acceptable to the predefined operator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(447,90): error C2676: binary '[': 'const texvecf' does not define this operator or a conversion to a type acceptable to the predefined operator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(447,110): error C2676: binary '[': 'const texvecf' does not define this operator or a conversion to a type acceptable to the predefined operator [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(698,45): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(698,43): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(828,9): error C2065: 'intersection_stream': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(829,9): error C2065: 'occlusion_stream': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(1744,41): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(1744,39): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(1783,41): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(1783,39): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2142,37): error C2039: 'length_sq': is not a member of 'qv' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\common\qvec.hh(1223,11):
+      see declaration of 'qv'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2142,37): error C3861: 'length_sq': identifier not found [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2465,40): error C2065: 'intersection_stream': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2466,12): error C2385: ambiguous access of 'clearPushedRays' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2466,12):
+      could be the 'clearPushedRays' in base 'raystream_embree_common_t'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2466,12):
+      or could be the 'clearPushedRays' in base 'RayStream'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2489,32): error C2385: ambiguous access of 'numPushedRays' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2489,32):
+      could be the 'numPushedRays' in base 'raystream_embree_common_t'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2489,32):
+      or could be the 'numPushedRays' in base 'RayStream'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2491,31): error C2039: 'index': is not a member of 'ray_io' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\trace_embree.hh(30,8):
+      see declaration of 'ray_io'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2491,23): error C2737: 'i': const object must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2698,45): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2698,43): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2750,45): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2750,43): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2910,45): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(2910,43): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,27): error C2259: 'raystream_occlusion_t': cannot instantiate abstract class [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\trace_embree.hh(210,7):
+      see declaration of 'raystream_occlusion_t'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,27):
+      due to following members:
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,27):
+      'void RayStream::resize(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(38,18):
+      see declaration of 'RayStream::resize'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,27):
+      'void RayStream::reserve(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(39,18):
+      see declaration of 'RayStream::reserve'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,27):
+      'void RayStream::clearPushedRays(void)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(40,18):
+      see declaration of 'RayStream::clearPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,27):
+      'size_t RayStream::numPushedRays(void) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(41,20):
+      see declaration of 'RayStream::numPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,27):
+      'const RayPayload &RayStream::getPayload(size_t) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(44,31):
+      see declaration of 'RayStream::getPayload'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,29): error C2259: 'raystream_occlusion_t': cannot instantiate abstract class [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\trace_embree.hh(210,7):
+      see declaration of 'raystream_occlusion_t'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,29):
+      due to following members:
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,29):
+      'void RayStream::resize(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(38,18):
+      see declaration of 'RayStream::resize'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,29):
+      'void RayStream::reserve(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(39,18):
+      see declaration of 'RayStream::reserve'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,29):
+      'void RayStream::clearPushedRays(void)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(40,18):
+      see declaration of 'RayStream::clearPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,29):
+      'size_t RayStream::numPushedRays(void) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(41,20):
+      see declaration of 'RayStream::numPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3116,29):
+      'const RayPayload &RayStream::getPayload(size_t) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(44,31):
+      see declaration of 'RayStream::getPayload'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,30): error C2259: 'raystream_intersection_t': cannot instantiate abstract class [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\trace_embree.hh(146,7):
+      see declaration of 'raystream_intersection_t'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,30):
+      due to following members:
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,30):
+      'void RayStream::resize(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(38,18):
+      see declaration of 'RayStream::resize'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,30):
+      'void RayStream::reserve(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(39,18):
+      see declaration of 'RayStream::reserve'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,30):
+      'void RayStream::clearPushedRays(void)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(40,18):
+      see declaration of 'RayStream::clearPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,30):
+      'size_t RayStream::numPushedRays(void) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(41,20):
+      see declaration of 'RayStream::numPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,30):
+      'const RayPayload &RayStream::getPayload(size_t) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(44,31):
+      see declaration of 'RayStream::getPayload'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,33): error C2259: 'raystream_intersection_t': cannot instantiate abstract class [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/ltface.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\trace_embree.hh(146,7):
+      see declaration of 'raystream_intersection_t'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,33):
+      due to following members:
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,33):
+      'void RayStream::resize(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(38,18):
+      see declaration of 'RayStream::resize'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,33):
+      'void RayStream::reserve(size_t)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(39,18):
+      see declaration of 'RayStream::reserve'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,33):
+      'void RayStream::clearPushedRays(void)': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(40,18):
+      see declaration of 'RayStream::clearPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,33):
+      'size_t RayStream::numPushedRays(void) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(41,20):
+      see declaration of 'RayStream::numPushedRays'
+      C:\Users\djdac\source\repos\EricW-tools\src\light\ltface.cc(3117,33):
+      'const RayPayload &RayStream::getPayload(size_t) const': is abstract
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(44,31):
+      see declaration of 'RayStream::getPayload'
+  
+  trace.cc
+  state.cc
+  libbsputil.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\src\bsputil\Release\libbsputil.lib
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/bsputil/CMakeLists.txt
+  light.cc
+  cmake_pch.cxx
+  main.cc
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(8,8): warning C4099: 'modelinfo_t': type name first seen using 'class' now seen using 'struct' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/light.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\light.hh(214,7):
+      see declaration of 'modelinfo_t'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\light.cc(34,10): error C1083: Cannot open include file: 'light/cache.hh': No such file or directory [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/light.cc')
+  
+  lightgrid.cc
+  Generating code
+  All 12053 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  libvis.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\src\vis\Release\libvis.lib
+  Building Custom Rule C:/Users/djdac/source/repos/EricW-tools/src/vis/CMakeLists.txt
+  cmake_pch.cxx
+  Previous IPDB not found, fall back to full compilation.
+  vmt-bspinfo.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\src\bspinfo\Release\vmt-bspinfo.exe
+C:\Users\djdac\source\repos\EricW-tools\src\light\lightgrid.cc(358,45): error C2065: 'extended_content_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/lightgrid.cc')
+  
+  phong.cc
+  merge.cc
+C:\Users\djdac\source\repos\EricW-tools\src\light\phong.cc(400,32): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/phong.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\phong.cc(400,18): error C3536: 'phong_group': cannot be used before it is initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/phong.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\phong.cc(445,13): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/phong.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\phong.cc(472,31): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/phong.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\phong.cc(477,39): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/phong.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\phong.cc(495,40): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/phong.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\phong.cc(500,48): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/phong.cc')
+  
+  bounce.cc
+  main.cc
+C:\Users\djdac\source\repos\EricW-tools\src\include\light\raystream.hh(8,8): warning C4099: 'modelinfo_t': type name first seen using 'class' now seen using 'struct' [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/bounce.cc')
+      C:\Users\djdac\source\repos\EricW-tools\src\include\light\light.hh(214,7):
+      see declaration of 'modelinfo_t'
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\bounce.cc(64,28): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/bounce.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\bounce.cc(64,26): error C2530: 'ext_info': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/bounce.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\bounce.cc(65,9): error C3536: 'ext_info': cannot be used before it is initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/bounce.cc')
+  
+  surflight.cc
+  outside.cc
+  All 7119 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  maputil.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\src\maputil\Release\maputil.exe
+  Generating code
+C:\Users\djdac\source\repos\EricW-tools\src\light\surflight.cc(66,41): error C2065: 'extended_texinfo_flags': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/surflight.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\surflight.cc(66,39): error C2530: 'extended_flags': references must be initialized [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/surflight.cc')
+  
+  write.cc
+  main.cc
+  Previous IPDB not found, fall back to full compilation.
+  portals.cc
+C:\Users\djdac\source\repos\EricW-tools\src\light\write.cc(494,41): error C2065: 'vanillaLMToDecoupled': undeclared identifier [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/write.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\write.cc(507,25): error C3861: 'tex': identifier not found [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/write.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\write.cc(507,60): error C3861: 'tex': identifier not found [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/write.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\write.cc(508,25): error C3861: 'tex': identifier not found [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/write.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\write.cc(508,64): error C3861: 'tex': identifier not found [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/write.cc')
+  
+C:\Users\djdac\source\repos\EricW-tools\src\light\write.cc(1234,23): error C2280: 'std::atomic<unsigned __int64> &std::atomic<unsigned __int64>::operator =(const std::atomic<unsigned __int64> &)': attempting to reference a deleted function [C:\Users\djdac\source\repos\EricW-tools\build\src\light\liblight.vcxproj]
+  (compiling source file '../../../src/light/write.cc')
+      C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Tools\MSVC\14.50.35717\include\atomic(2136,13):
+      see declaration of 'std::atomic<unsigned __int64>::operator ='
+  
+  spatialindex.cc
+  vibey_api.cc
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  prtfile.cc
+  qbsp.cc
+  All 17400 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  vmt-bsputil.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\src\bsputil\Release\vmt-bsputil.exe
+  brushbsp.cc
+  faces.cc
+  tjunc.cc
+  tree.cc
+  All 13139 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  vmt-vis.vcxproj -> C:\Users\djdac\source\repos\EricW-tools\build\src\vis\Release\vmt-vis.exe
+  writebsp.cc
+  exportobj.cc

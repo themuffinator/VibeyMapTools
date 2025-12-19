@@ -1,6 +1,16 @@
-=========
-Changelog
-=========
+========================
+VibeyMapTools Changelog
+========================
+
+This document contains the detailed technical changelog for all VibeyMapTools releases.
+
+VibeyMapTools is a fork of `ericw-tools <https://github.com/ericwa/ericw-tools>`_.
+The version history below includes both VibeyMapTools releases and the original ericw-tools history.
+
+For a summarized changelog, see `CHANGELOG.md <../CHANGELOG.md>`_ in the project root.
+
+---
+
 
 2.0.0-alpha11 (unreleased)
 ==========================

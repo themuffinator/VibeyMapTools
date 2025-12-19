@@ -1,21 +1,24 @@
-=====
-light
-=====
+=========
+vmt-light
+=========
 
-light - Caclulate lightmap data for a Quake BSP file
+Lighting Compiler — Calculate lightmap data for a Quake BSP file
+=================================================================
 
 Synopsis
-========
+--------
 
-**light** [OPTION]... BSPFILE
+.. code-block:: bash
+
+   vmt-light [OPTION]... BSPFILE
 
 Description
-===========
+-----------
 
-**light** reads a Quake .bsp file and calculates light and shadow
-information based on the entity definitions contained in the .bsp. The
-.bsp file is updated with the new light data upon completion,
-overwriting any existing lighting data.
+:program:`vmt-light` is the lighting compiler for VibeyMapTools. It reads a 
+Quake .bsp file and calculates light and shadow information based on the 
+entity definitions contained in the .bsp. The .bsp file is updated with 
+the new light data upon completion, overwriting any existing lighting data.
 
 Options
 =======
@@ -1205,29 +1208,41 @@ The ``\b`` escape sequence toggles red text on/off, you can use this in
 any strings in the map file. e.g. ``"message" "Here is \bsome red
 text\b..."``
 
-Author
-======
+See Also
+--------
 
+* :doc:`qbsp` — BSP compiler
+* :doc:`vis` — Visibility compiler
+
+
+Author
+------
+
+| Based on original work by id Software
 | Eric Wasylishen
-| Kevin Shanahan (aka Tyrann) - http://disenchant.net
+| Kevin Shanahan (aka Tyrann) — http://disenchant.net
 | David Walton (aka spike)
-| Based on source provided by id Software
+| VibeyMapTools contributors
+
 
 Reporting Bugs
-==============
+--------------
 
-| Please post bug reports at
-  https://github.com/ericwa/ericw-tools/issues.
-| Improvements to the documentation are welcome and encouraged.
+Please post bug reports at https://github.com/themuffinator/VibeyMapTools/issues.
+
+Improvements to the documentation are welcome and encouraged.
+
 
 Copyright
-=========
+---------
 
-| Copyright (C) 2017 Eric Wasylishen
-| Copyright (C) 2013 Kevin Shanahan
-| Copyright (C) 1997 id Software
-| License GPLv2+: GNU GPL version 2 or later
-| <http://gnu.org/licenses/gpl2.html>.
+| Copyright © 2024 VibeyMapTools contributors
+| Copyright © 2017 Eric Wasylishen
+| Copyright © 2013 Kevin Shanahan
+| Copyright © 1997 id Software
 
-This is free software: you are free to change and redistribute it. There
-is NO WARRANTY, to the extent permitted by law.
+License GPLv3: GNU GPL version 3 or later
+https://gnu.org/licenses/gpl-3.0.html
+
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.

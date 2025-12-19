@@ -6,11 +6,11 @@
 
 **Modern BSP compilation tools for Quake engine mapping**
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/user/VibeyMapTools/ci.yml?branch=main&style=flat-square)](../../actions)
-[![Release](https://img.shields.io/github/v/release/user/VibeyMapTools?style=flat-square)](../../releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/themuffinator/VibeyMapTools/ci.yml?branch=main&style=flat-square)](../../actions)
+[![Release](https://img.shields.io/github/v/release/themuffinator/VibeyMapTools?style=flat-square)](../../releases)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](COPYING)
 
-[**Download**](../../releases) · [**Documentation**](docs/) · [**Changelog**](CHANGELOG.md)
+[**Download**](../../releases) · [**Documentation**](docs/) · [**Wiki**](WIKI.md) · [**Changelog**](CHANGELOG.md)
 
 </div>
 
@@ -20,7 +20,7 @@
 
 <table>
 <tr>
-<td width="120"><b>vmt-qbsp</b></td>
+<td width="120"><b>vmt-bsp</b></td>
 <td>Compile .map to .bsp</td>
 </tr>
 <tr>
@@ -45,7 +45,7 @@
 
 ```bash
 # Standard compilation
-vmt-qbsp mymap.map
+vmt-bsp mymap.map
 vmt-vis mymap.bsp
 vmt-light mymap.bsp
 
@@ -97,7 +97,7 @@ Normal map integration in lightmaps
 ## 🔧 Building from Source
 
 ```bash
-git clone --recursive https://github.com/user/VibeyMapTools.git
+git clone --recursive https://github.com/themuffinator/VibeyMapTools.git
 cd VibeyMapTools && cmake -B build && cmake --build build
 ```
 
@@ -122,6 +122,7 @@ See [**BUILDING.md**](BUILDING.md) for detailed instructions.
 |----------|-------------|
 | [BUILDING.md](BUILDING.md) | Build instructions, versioning, CI/CD |
 | [CHANGELOG.md](CHANGELOG.md) | Version history and release notes |
+| [WIKI.md](WIKI.md) | Documentation hub and quick reference |
 | [docs/](docs/) | Full tutorials and reference |
 
 ## 📜 License
