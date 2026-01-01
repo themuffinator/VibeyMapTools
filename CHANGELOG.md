@@ -14,6 +14,7 @@ This release continues the VibeyMapTools fork with rebranding and modernization.
 - Project rebranded from ericw-tools to VibeyMapTools (VMT)
 - All executables now prefixed with `vmt-` for clarity
 - License updated to GPL v3
+- Build: tag-aware SemVer metadata and release packaging automation
 
 ---
 

@@ -1,0 +1,54 @@
+----  / VibeyMapTools 2.1.0-2.0.0-alpha10-25-g50be6d63-dirty ----
+LoadBSPFile: 'C:\Users\djdac\source\repos\VibeyMapTools\suntest.bsp'
+BSP is version Quake BSP bsp29
+INFO: using built-in palette.
+img::ConvertTextures: WARNING: invalid size data for 
+Loading extended texinfo flags from C:\Users\djdac\source\repos\VibeyMapTools\suntest.texinfo.json...
+Loading extended content flags from C:\Users\djdac\source\repos\VibeyMapTools\suntest.content.json...
+6 entities read, 2 are lights.
+.lit colored light output requested on command line.
+
+--- Options Summary ---
+    "path" was set to ""C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\q2_wal_metadata"" (from command line)
+    "defaultpaths" was set to "0" (from command line)
+    "lightgrid" was set to "1" (from command line)
+    "lightgrid_format" was set to "lightgrids" (from command line)
+
+DecompressAllVis: invalid visofs for leaf 0
+Embree_TraceInit: Embree version: 4.4.0
+Embree_TraceInit: 
+	13 sky faces
+	83 solid faces
+	0 filtered faces
+	0 shadow-casting skip faces
+SetupLights: 2 initial lights
+SetupLights: 2 after surface lights
+SetupLights: 2 after jittering
+Final count: 2 lights, 2 suns in use.
+0 surface light points in use.
+Saving progress after direct lighting...
+Lighting Completed.
+
+Writing C:\Users\djdac\source\repos\VibeyMapTools\suntest.lit
+Lighting Completed.
+
+Writing C:\Users\djdac\source\repos\VibeyMapTools\suntest.lit
+img::ConvertTextures: WARNING: Texture  duplicated
+img::ConvertTextures: WARNING: Texture sky3 duplicated
+img::ConvertTextures: WARNING: Texture brownwirewall duplicated
+img::ConvertTextures: WARNING: Texture swall1b duplicated
+     32 32 32 lightgrid_dist
+     32 35 23 grid_size
+     -160 -160 -480 grid_mins
+     864 960 240 grid_maxs
+     1 num_styles
+octree stored 25760 grid nodes + 0 occluded = 25760 total, full stored 25760 (octree is 100 percent)
+octree nodes size: 1100 bytes (25 * 44)
+octree leafs 176 overhead 4224 bytes
+       446016 bytes LIGHTGRIDS
+0 switchable light styles (32 max)
+Writing C:\Users\djdac\source\repos\VibeyMapTools\suntest.bsp as Quake BSP bsp29
+0.331s seconds elapsed
+0 empty lightmaps
+
+

@@ -1,0 +1,40 @@
+----  / VibeyMapTools 2.1.0-2.0.0-alpha10-25-g50be6d63-dirty ----
+
+--- Options Summary ---
+    "nopercent" was set to "1" (from command line)
+    "nostat" was set to "1" (from command line)
+    "noprogress" was set to "1" (from command line)
+    "path" was set to ""C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\q2_wal_metadata"" (from command line)
+
+Input file: C:\Users\djdac\source\repos\VibeyMapTools\tests\maps\deprecated\bouncecolorscaletest.map
+Output file: C:\Users\djdac\source\repos\VibeyMapTools\bouncecolorscaletest.bsp
+
+INFO: using built-in palette.
+WARNING: texture name openquartzmirror (C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\deprecated\free_wad.wad) is not null-terminated
+INFO: world extents calculated to 1800 units
+WARNING: unable to find texture skip
+Processing hull 0...
+Processing hull 1...
+ERROR TO FIX LATER: clock counter ended too early
+Processing hull 2...
+ERROR TO FIX LATER: clock counter ended too early
+Writing C:\Users\djdac\source\repos\VibeyMapTools\bouncecolorscaletest.bsp as Quake BSP bsp29
+Wrote C:\Users\djdac\source\repos\VibeyMapTools\bouncecolorscaletest.bsp
+
+count   lump name    byte size 
+      2 models              128
+     89 planes             1780
+    206 vertexes           2472
+     41 nodes               984
+     27 texinfos           1080
+    178 faces              3560
+     98 clipnodes           784
+     29 leafs               812
+    255 marksurfaces        510
+    387 edges              1548
+    772 surfedges          3088
+      8 textures          84636
+        lightdata             0
+        visdata               0
+        entdata             520
+running with lower priority

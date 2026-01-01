@@ -11,7 +11,7 @@
 #include "common/imglib.hh"
 #include "light/write.hh" // facesup_t
 
-struct modelinfo_t;
+class modelinfo_t;
 struct lightsurf_t;
 struct mbsp_t;
 
@@ -23,7 +23,7 @@ namespace light
 struct LightContext
 {
     // Options
-    const light_settings *options = nullptr;
+    const settings::light_settings *options = nullptr;
 
     // BSP Integration
     mbsp_t *bsp = nullptr;
@@ -64,7 +64,7 @@ struct LightContext
     int dump_vertnum = -1;
 
     // Constructor
-    explicit LightContext(const light_settings *opts, mbsp_t *b)
+    explicit LightContext(const settings::light_settings *opts, mbsp_t *b)
         : options(opts),
           bsp(b)
     {

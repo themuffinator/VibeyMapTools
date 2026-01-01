@@ -190,7 +190,7 @@ bool LoadCache(const std::string &filename, light_cache_t &cache)
     for (size_t i = 0; i < num_faces; i++) {
         int idx;
         read(f, idx);
-        face_cache_t fc;
+        light_face_cache_t fc;
         read(f, fc.light_hash);
         read_vec(f, fc.samples);
 

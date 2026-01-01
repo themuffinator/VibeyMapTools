@@ -1,0 +1,40 @@
+----  / VibeyMapTools 2.1.0-2.0.0-alpha10-25-g50be6d63-dirty ----
+
+--- Options Summary ---
+    "nopercent" was set to "1" (from command line)
+    "nostat" was set to "1" (from command line)
+    "noprogress" was set to "1" (from command line)
+    "path" was set to ""C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\q2_wal_metadata"" (from command line)
+
+Input file: C:\Users\djdac\source\repos\VibeyMapTools\tests\maps\q1_light_suntexture.map
+Output file: C:\Users\djdac\source\repos\VibeyMapTools\q1_light_suntexture.bsp
+
+INFO: using built-in palette.
+WARNING: texture name openquartzmirror (C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\deprecated/free_wad.wad) is not null-terminated
+INFO: world extents calculated to 3208 units
+WARNING: unable to find texture skip
+Processing hull 0...
+Processing hull 1...
+ERROR TO FIX LATER: clock counter ended too early
+Processing hull 2...
+ERROR TO FIX LATER: clock counter ended too early
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_light_suntexture.bsp as Quake BSP bsp29
+Wrote C:\Users\djdac\source\repos\VibeyMapTools\q1_light_suntexture.bsp
+
+count   lump name    byte size 
+      1 models               64
+     29 planes              580
+     58 vertexes            696
+     20 nodes               480
+      7 texinfos            280
+     46 faces               920
+     26 clipnodes           208
+      6 leafs               168
+     54 marksurfaces        108
+    103 edges               412
+    204 surfedges           816
+      4 textures          92620
+        lightdata             0
+        visdata               0
+        entdata             536
+running with lower priority

@@ -1,0 +1,39 @@
+----  / VibeyMapTools 2.1.0-2.0.0-alpha10-25-g50be6d63-dirty ----
+
+--- Options Summary ---
+    "nopercent" was set to "1" (from command line)
+    "nostat" was set to "1" (from command line)
+    "noprogress" was set to "1" (from command line)
+    "path" was set to ""C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\q2_wal_metadata"" (from command line)
+
+Input file: C:\Users\djdac\source\repos\VibeyMapTools\tests\maps\q1_light_skip_shadow.map
+Output file: C:\Users\djdac\source\repos\VibeyMapTools\q1_light_skip_shadow.bsp
+
+INFO: using built-in palette.
+WARNING: texture name openquartzmirror (C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\deprecated/free_wad.wad) is not null-terminated
+INFO: world extents calculated to 3208 units
+Processing hull 0...
+Processing hull 1...
+ERROR TO FIX LATER: clock counter ended too early
+Processing hull 2...
+ERROR TO FIX LATER: clock counter ended too early
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_light_skip_shadow.bsp as Quake BSP bsp29
+Wrote C:\Users\djdac\source\repos\VibeyMapTools\q1_light_skip_shadow.bsp
+
+count   lump name    byte size 
+      2 models              128
+     47 planes              940
+     61 vertexes            732
+     20 nodes               480
+      4 texinfos            160
+     49 faces               980
+     46 clipnodes           368
+     15 leafs               420
+     63 marksurfaces        126
+    110 edges               440
+    214 surfedges           856
+      2 textures          10972
+        lightdata             0
+        visdata               0
+        entdata             421
+running with lower priority

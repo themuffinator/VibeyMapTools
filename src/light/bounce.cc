@@ -24,6 +24,7 @@
 #include <atomic>
 
 #include <light/light.hh>
+#include <light/lightcontext.hh>
 #include <light/entities.hh> // for EstimateVisibleBoundsAtPoint
 #include <light/ltface.hh>
 #include <light/surflight.hh>
@@ -61,7 +62,7 @@ static bool Face_ShouldBounce(const mbsp_t *bsp, const mface_t *face)
     }
 
     // check for "_bounce" "-1"
-    const auto &ext_info = extended_texinfo_flags[face->texinfo];
+    const auto &ext_info = g_ctx->extended_texinfo_flags[face->texinfo];
     if (ext_info.no_bounce) {
         return false;
     }

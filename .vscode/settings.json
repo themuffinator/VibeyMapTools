@@ -1,5 +1,18 @@
 {
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.configureOnOpen": true,
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.configureSettings": {
+        "TBB_DIR": "${workspaceFolder}/oneapi-tbb-2021.11.0/lib/cmake/tbb",
+        "embree_DIR": "${workspaceFolder}/embree/lib/cmake/embree-4.4.0"
+    },
+    "C_Cpp.default.cppStandard": "c++20",
     "search.exclude": {
-        "3rdparty/**": true
+        "3rdparty/**": true,
+        "build/**": true,
+        "embree/**": true,
+        "extern/**": true,
+        "oneapi-tbb-2021.11.0/**": true,
+        "vcpkg/**": true
     }
 }

@@ -21,6 +21,7 @@
 #include <light/phong.hh>
 
 #include <light/light.hh> // for extended_texinfo_flags
+#include <light/lightcontext.hh>
 
 #include <cstdint>
 #include <iostream>
@@ -397,7 +398,7 @@ int Q2_FacePhongValue(const mbsp_t *bsp, const mface_t *face)
     if (texinfo != nullptr) {
         // FIXME: would be more convenient if common code loaded texinfo file
         // so we could access these in mtexinfo_t rather than extended_texinfo_flags
-        if (auto phong_group = extended_texinfo_flags[face->texinfo].phong_group) {
+        if (auto phong_group = g_ctx->extended_texinfo_flags[face->texinfo].phong_group) {
             // Q1 _phong_group syntax (also works in Q2 maps)
             return phong_group;
         }
@@ -442,7 +443,7 @@ void CalculateVertexNormals(const mbsp_t *bsp)
         for (int j = info->model->firstface; j < info->model->firstface + info->model->numfaces; j++) {
             const mface_t *f = BSP_GetFace(bsp, j);
 
-            extended_texinfo_flags[f->texinfo].phong_angle = phongangle_byte;
+            g_ctx->extended_texinfo_flags[f->texinfo].phong_angle = phongangle_byte;
         }
     }
 
@@ -469,12 +470,12 @@ void CalculateVertexNormals(const mbsp_t *bsp)
         const qplane3f f_plane = Face_Plane(bsp, &f);
 
         // any face normal within this many degrees can be smoothed with this face
-        float f_phong_angle = extended_texinfo_flags[f.texinfo].phong_angle;
+        float f_phong_angle = g_ctx->extended_texinfo_flags[f.texinfo].phong_angle;
         if (f_phong_angle == 0 && f_phongValue != 0) {
             // if Q2 style phong is requested, but Q1 is not in use, set the default phong angle
             f_phong_angle = modelinfo_t::DEFAULT_PHONG_ANGLE;
         }
-        float f_phong_angle_concave = extended_texinfo_flags[f.texinfo].phong_angle_concave;
+        float f_phong_angle_concave = g_ctx->extended_texinfo_flags[f.texinfo].phong_angle_concave;
         if (f_phong_angle_concave == 0) {
             f_phong_angle_concave = f_phong_angle;
         }
@@ -492,12 +493,12 @@ void CalculateVertexNormals(const mbsp_t *bsp)
 
                 // FIXME: factor out and share with above?
                 const int f2_phongValue = Q2_FacePhongValue(bsp, f2);
-                float f2_phong_angle = extended_texinfo_flags[f2->texinfo].phong_angle;
+                float f2_phong_angle = g_ctx->extended_texinfo_flags[f2->texinfo].phong_angle;
                 if (f2_phong_angle == 0 && f2_phongValue != 0) {
                     // if Q2 style phong is requested, but Q1 is not in use, set the default phong angle
                     f2_phong_angle = modelinfo_t::DEFAULT_PHONG_ANGLE;
                 }
-                float f2_phong_angle_concave = extended_texinfo_flags[f2->texinfo].phong_angle_concave;
+                float f2_phong_angle_concave = g_ctx->extended_texinfo_flags[f2->texinfo].phong_angle_concave;
                 if (f2_phong_angle_concave == 0) {
                     f2_phong_angle_concave = f2_phong_angle;
                 }

@@ -18,6 +18,7 @@
 */
 
 #include <light/light.hh>
+#include <light/lightcontext.hh>
 #include <light/ltface.hh>
 #include <light/write.hh>
 
@@ -470,17 +471,42 @@ static void WriteSingleLightmap_FromDecoupled(const mbsp_t *bsp, const mface_t *
     const lightmap_t *lm, const int output_width, const int output_height, uint8_t *out, uint8_t *lit, uint8_t *lux,
     uint8_t *hdr)
 {
+    const int oversampled_width = lightsurf->width;
+    const int oversampled_height = lightsurf->height;
+
+    std::vector<qvec4f> fullres = LightmapColorsToGLMVector(lightsurf, lm);
+
+    if (light_options.highlightseams.value()) {
+        fullres = HighlightSeams(fullres, oversampled_width, oversampled_height);
+    }
+
+    fullres = FloodFillTransparent(fullres, oversampled_width, oversampled_height);
+
+    if (light_options.soft.value() > 0) {
+        fullres = BoxBlurImage(fullres, oversampled_width, oversampled_height, light_options.soft.value());
+    }
+
+    const auto tex = [&fullres, oversampled_width, oversampled_height](int x, int y) -> qvec4f {
+        const int x_clamped = std::clamp(x, 0, oversampled_width - 1);
+        const int y_clamped = std::clamp(y, 0, oversampled_height - 1);
+        const int sampleindex = (y_clamped * oversampled_width) + x_clamped;
+        return fullres.at(sampleindex);
+    };
+
+    const qmat4x4f vanillaLMToDecoupled =
+        lightsurf->extents.worldToLMMatrix * lightsurf->vanilla_extents.lmToWorldMatrix;
+
     std::optional<std::vector<qvec4f>> fullres_normals;
     std::function<qvec4f(int, int)> tex_normals;
 
     if (lux) {
         fullres_normals = LightmapNormalsToGLMVector(lightsurf, lm);
 
-        tex_normals = [&lightsurf, &fullres_normals](int x, int y) -> qvec4f {
-            const int x_clamped = std::clamp(x, 0, lightsurf->width - 1);
-            const int y_clamped = std::clamp(y, 0, lightsurf->height - 1);
+        tex_normals = [&lightsurf, &fullres_normals, oversampled_width, oversampled_height](int x, int y) -> qvec4f {
+            const int x_clamped = std::clamp(x, 0, oversampled_width - 1);
+            const int y_clamped = std::clamp(y, 0, oversampled_height - 1);
 
-            const int sampleindex = (y_clamped * lightsurf->width) + x_clamped;
+            const int sampleindex = (y_clamped * oversampled_width) + x_clamped;
             assert(sampleindex >= 0);
             assert(sampleindex < fullres_normals->size());
 
@@ -747,13 +773,12 @@ struct lightmap_intermediate_data_t
 };
 
 // temp
-extern std::vector<facesup_t> faces_sup; // lit2/bspx stuff
-extern std::vector<bspx_decoupled_lm_perface> facesup_decoupled_global;
 
 int CalculateLightmapStyles(const mbsp_t *bsp, mface_t *face, facesup_t *facesup, lightsurf_t *lightsurf,
     const faceextents_t &extents, std::atomic_size_t &lightmap_size, lightmap_intermediate_data_t &id)
 {
     lightmapdict_t &lightmaps = lightsurf->lightmapsByStyle;
+    id.sorted.clear();
 
     size_t maxfstyles = std::min((size_t)light_options.facestyles.value(), facesup ? MAXLIGHTMAPSSUP : MAXLIGHTMAPS);
     int maxstyle = facesup ? INVALID_LIGHTSTYLE : INVALID_LIGHTSTYLE_OLD;
@@ -1096,7 +1121,7 @@ void SaveLightmapSurfaces(bspdata_t *bspdata, const fs::path &source)
             const modelinfo_t *face_modelinfo = ModelInfoForFace(bsp, i);
             int num_styles;
 
-            if (!facesup_decoupled_global.empty()) {
+            if (!g_ctx->facesup_decoupled_global.empty()) {
                 num_styles =
                     CalculateLightmapStyles(bsp, f, nullptr, &surf, surf.extents, lightmap_size, intermediate_data[i]);
 
@@ -1104,12 +1129,12 @@ void SaveLightmapSurfaces(bspdata_t *bspdata, const fs::path &source)
                     intermediate_data[i].vanilla_lightofs =
                         GetFileSpace(lightmap_size, surf.vanilla_extents.numsamples() * num_styles);
                 }
-            } else if (faces_sup.empty()) {
+            } else if (g_ctx->faces_sup.empty()) {
                 num_styles =
                     CalculateLightmapStyles(bsp, f, nullptr, &surf, surf.extents, lightmap_size, intermediate_data[i]);
-            } else if (light_options.novanilla.value() || faces_sup[i].lmscale == face_modelinfo->lightmapscale) {
+            } else if (light_options.novanilla.value() || g_ctx->faces_sup[i].lmscale == face_modelinfo->lightmapscale) {
                 num_styles = CalculateLightmapStyles(
-                    bsp, f, &faces_sup[i], &surf, surf.extents, lightmap_size, intermediate_data[i]);
+                    bsp, f, &g_ctx->faces_sup[i], &surf, surf.extents, lightmap_size, intermediate_data[i]);
             } else {
                 num_styles =
                     CalculateLightmapStyles(bsp, f, nullptr, &surf, surf.extents, lightmap_size, intermediate_data[i]);
@@ -1165,15 +1190,15 @@ void SaveLightmapSurfaces(bspdata_t *bspdata, const fs::path &source)
             const modelinfo_t *face_modelinfo = ModelInfoForFace(bsp, i);
             int num_styles;
 
-            if (!facesup_decoupled_global.empty()) {
+            if (!g_ctx->facesup_decoupled_global.empty()) {
                 num_styles =
                     CalculateLightmapStyles(bsp, f, nullptr, &surf, surf.extents, lightmap_size, intermediate_data[i]);
-            } else if (faces_sup.empty()) {
+            } else if (g_ctx->faces_sup.empty()) {
                 num_styles =
                     CalculateLightmapStyles(bsp, f, nullptr, &surf, surf.extents, lightmap_size, intermediate_data[i]);
-            } else if (light_options.novanilla.value() || faces_sup[i].lmscale == face_modelinfo->lightmapscale) {
+            } else if (light_options.novanilla.value() || g_ctx->faces_sup[i].lmscale == face_modelinfo->lightmapscale) {
                 num_styles = CalculateLightmapStyles(
-                    bsp, f, &faces_sup[i], &surf, surf.extents, lightmap_size, intermediate_data[i]);
+                    bsp, f, &g_ctx->faces_sup[i], &surf, surf.extents, lightmap_size, intermediate_data[i]);
             } else {
                 num_styles =
                     CalculateLightmapStyles(bsp, f, nullptr, &surf, surf.extents, lightmap_size, intermediate_data[i]);
@@ -1215,13 +1240,13 @@ void SaveLightmapSurfaces(bspdata_t *bspdata, const fs::path &source)
             int num_styles = intermediate_data[i].num_styles;
 
             // Logic from original loop for allocating vanilla vs extra
-            if (!facesup_decoupled_global.empty()) {
+            if (!g_ctx->facesup_decoupled_global.empty()) {
                 if (!light_options.novanilla.value()) {
                     intermediate_data[i].vanilla_lightofs =
                         GetFileSpace(current_offset, surf.vanilla_extents.numsamples() * num_styles);
                 }
-            } else if (!faces_sup.empty() && !(light_options.novanilla.value() ||
-                                                 faces_sup[i].lmscale == ModelInfoForFace(bsp, i)->lightmapscale)) {
+            } else if (!g_ctx->faces_sup.empty() && !(light_options.novanilla.value() ||
+                                                 g_ctx->faces_sup[i].lmscale == ModelInfoForFace(bsp, i)->lightmapscale)) {
                 intermediate_data[i].vanilla_lightofs =
                     GetFileSpace(current_offset, surf.vanilla_extents.numsamples() * num_styles);
             }
@@ -1231,7 +1256,7 @@ void SaveLightmapSurfaces(bspdata_t *bspdata, const fs::path &source)
             }
         }
 
-        lightmap_size = current_offset;
+        lightmap_size.store(current_offset.load());
 
         // allocate required space
         if (!bsp->loadversion->game->has_rgb_lightmap) {
@@ -1263,28 +1288,28 @@ void SaveLightmapSurfaces(bspdata_t *bspdata, const fs::path &source)
             auto f = &bsp->dfaces[i];
             const modelinfo_t *face_modelinfo = ModelInfoForFace(bsp, i);
 
-            if (!facesup_decoupled_global.empty()) {
-                SaveLightmapSurface(bsp, f, nullptr, &facesup_decoupled_global[i], &surf, surf.extents, surf.extents,
+            if (!g_ctx->facesup_decoupled_global.empty()) {
+                SaveLightmapSurface(bsp, f, nullptr, &g_ctx->facesup_decoupled_global[i], &surf, surf.extents, surf.extents,
                     filebase, lit_filebase, lux_filebase, hdr_filebase, intermediate_data[i]);
-            } else if (faces_sup.empty()) {
+            } else if (g_ctx->faces_sup.empty()) {
                 SaveLightmapSurface(bsp, f, nullptr, nullptr, &surf, surf.extents, surf.extents, filebase, lit_filebase,
                     lux_filebase, hdr_filebase, intermediate_data[i]);
-            } else if (light_options.novanilla.value() || faces_sup[i].lmscale == face_modelinfo->lightmapscale) {
-                if (faces_sup[i].lmscale == face_modelinfo->lightmapscale) {
-                    f->lightofs = faces_sup[i].lightofs;
+            } else if (light_options.novanilla.value() || g_ctx->faces_sup[i].lmscale == face_modelinfo->lightmapscale) {
+                if (g_ctx->faces_sup[i].lmscale == face_modelinfo->lightmapscale) {
+                    f->lightofs = g_ctx->faces_sup[i].lightofs;
                 } else {
                     f->lightofs = -1;
                 }
-                SaveLightmapSurface(bsp, f, &faces_sup[i], nullptr, &surf, surf.extents, surf.extents, filebase,
+                SaveLightmapSurface(bsp, f, &g_ctx->faces_sup[i], nullptr, &surf, surf.extents, surf.extents, filebase,
                     lit_filebase, lux_filebase, hdr_filebase, intermediate_data[i]);
                 for (int j = 0; j < MAXLIGHTMAPS; j++) {
                     f->styles[j] =
-                        faces_sup[i].styles[j] == INVALID_LIGHTSTYLE ? INVALID_LIGHTSTYLE_OLD : faces_sup[i].styles[j];
+                        g_ctx->faces_sup[i].styles[j] == INVALID_LIGHTSTYLE ? INVALID_LIGHTSTYLE_OLD : g_ctx->faces_sup[i].styles[j];
                 }
             } else {
                 SaveLightmapSurface(bsp, f, nullptr, nullptr, &surf, surf.extents, surf.vanilla_extents, filebase,
                     lit_filebase, lux_filebase, hdr_filebase, intermediate_data[i]);
-                SaveLightmapSurface(bsp, f, &faces_sup[i], nullptr, &surf, surf.extents, surf.extents, filebase,
+                SaveLightmapSurface(bsp, f, &g_ctx->faces_sup[i], nullptr, &surf, surf.extents, surf.extents, filebase,
                     lit_filebase, lux_filebase, hdr_filebase, intermediate_data[i]);
             }
         });
@@ -1293,7 +1318,7 @@ void SaveLightmapSurfaces(bspdata_t *bspdata, const fs::path &source)
     logging::print("Lighting Completed.\n\n");
 
     if (light_options.write_litfile == lightfile_t::lit2) {
-        WriteLitFile(bsp, faces_sup, source, 2, lit_filebase, lux_filebase, hdr_filebase);
+        WriteLitFile(bsp, g_ctx->faces_sup, source, 2, lit_filebase, lux_filebase, hdr_filebase);
         return; // run away before any files are written
     }
 
@@ -1313,13 +1338,13 @@ void SaveLightmapSurfaces(bspdata_t *bspdata, const fs::path &source)
 
     // lit/lux files (or their BSPX equivalents)
     if (light_options.write_litfile & lightfile_t::lithdr) {
-        WriteLitFile(bsp, faces_sup, source, LIT_VERSION_E5BGR9, lit_filebase, lux_filebase, hdr_filebase);
+        WriteLitFile(bsp, g_ctx->faces_sup, source, LIT_VERSION_E5BGR9, lit_filebase, lux_filebase, hdr_filebase);
     }
     if (light_options.write_litfile & lightfile_t::lit) {
         if (bsp->loadversion->game->has_rgb_lightmap) {
             logging::print("WARNING: -lit requested but game has RGB lightmaps already, ignoring.\n");
         } else {
-            WriteLitFile(bsp, faces_sup, source, LIT_VERSION, lit_filebase, lux_filebase, hdr_filebase);
+            WriteLitFile(bsp, g_ctx->faces_sup, source, LIT_VERSION, lit_filebase, lux_filebase, hdr_filebase);
         }
     }
     if (light_options.write_litfile & lightfile_t::bspx) {

@@ -91,6 +91,7 @@ class raystream_intersection_t;
 
 struct lightsurf_t
 {
+    lightsurf_t() = default;
     const settings::worldspawn_keys *cfg;
     const modelinfo_t *modelinfo;
     const mbsp_t *bsp;
@@ -146,6 +147,12 @@ struct lightsurf_t
 
     // surface light stuff
     std::unique_ptr<surfacelight_t> vpl;
+
+    ~lightsurf_t();
+    lightsurf_t(const lightsurf_t &) = delete;
+    lightsurf_t &operator=(const lightsurf_t &) = delete;
+    lightsurf_t(lightsurf_t &&) noexcept = default;
+    lightsurf_t &operator=(lightsurf_t &&) noexcept = default;
 };
 
 /* debug */
@@ -206,8 +213,6 @@ extern bool dirt_in_use; // should any dirtmapping take place? set in SetupDirt
 
 constexpr qvec3f vec3_white{255};
 
-extern int dump_facenum;
-extern int dump_vertnum;
 
 constexpr int CHANNEL_MASK_DEFAULT = 1;
 

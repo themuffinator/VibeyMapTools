@@ -1,0 +1,38 @@
+----  / VibeyMapTools 2.1.0-2.0.0-alpha10-25-g50be6d63-dirty ----
+
+--- Options Summary ---
+    "nopercent" was set to "1" (from command line)
+    "nostat" was set to "1" (from command line)
+    "noprogress" was set to "1" (from command line)
+    "path" was set to ""C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\q2_wal_metadata"" (from command line)
+
+Input file: C:\Users\djdac\source\repos\VibeyMapTools\tests\maps\q1_litwater.map
+Output file: C:\Users\djdac\source\repos\VibeyMapTools\q1_litwater.bsp
+
+INFO: using built-in palette.
+WARNING: texture name openquartzmirror (C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\deprecated/free_wad.wad) is not null-terminated
+INFO: world extents calculated to 1064 units
+WARNING: unable to find texture skip
+Processing hull 0...
+Processing hull 1...
+Processing hull 2...
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_litwater.bsp as Quake BSP bsp29
+Wrote C:\Users\djdac\source\repos\VibeyMapTools\q1_litwater.bsp
+
+count   lump name    byte size 
+      1 models               64
+     40 planes              800
+     78 vertexes            936
+     22 nodes               528
+     23 texinfos            920
+     86 faces              1720
+     26 clipnodes           208
+     15 leafs               420
+    110 marksurfaces        220
+    179 edges               716
+    356 surfedges          1424
+      4 textures          16460
+        lightdata             0
+        visdata               0
+        entdata             393
+running with lower priority

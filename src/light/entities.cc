@@ -31,6 +31,7 @@
 #include <light/trace.hh>
 #include <light/trace_embree.hh>
 #include <light/light.hh>
+#include <light/lightcontext.hh>
 #include <common/bsputils.hh>
 #include <common/parallel.hh>
 
@@ -1092,7 +1093,7 @@ void LoadEntities(const settings::worldspawn_keys &cfg, const mbsp_t *bsp)
 std::tuple<qvec3f, bool> FixLightOnFace(const mbsp_t *bsp, const qvec3f &point, bool warn, float max_dist)
 {
     // FIXME: Check all shadow casters
-    if (!Light_PointInWorld(bsp, extended_content_flags, point)) {
+    if (!Light_PointInWorld(bsp, g_ctx->extended_content_flags, point)) {
         return {point, true};
     }
 
@@ -1106,7 +1107,7 @@ std::tuple<qvec3f, bool> FixLightOnFace(const mbsp_t *bsp, const qvec3f &point, 
         testpoint[axis] += (add ? max_dist : -max_dist);
 
         // FIXME: Check all shadow casters
-        if (!Light_PointInWorld(bsp, extended_content_flags, testpoint)) {
+        if (!Light_PointInWorld(bsp, g_ctx->extended_content_flags, testpoint)) {
             return {testpoint, true};
         }
     }
@@ -1368,7 +1369,7 @@ bool FaceMatchesSurfaceLightTemplate(
         return false;
     }
 
-    const surfflags_t &extended_flags = extended_texinfo_flags[face->texinfo];
+    const surfflags_t &extended_flags = g_ctx->extended_texinfo_flags[face->texinfo];
 
     if (surflight.surflight_group.value() != extended_flags.surflight_group) {
         return false;

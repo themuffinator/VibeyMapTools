@@ -42,3 +42,5 @@ copy_mingw_dlls(tests)
 add_loader_path_to_rpath(tests)
 
 add_definitions(-DHAVE_EMBREE)
+
+add_test(NAME tests COMMAND tests)

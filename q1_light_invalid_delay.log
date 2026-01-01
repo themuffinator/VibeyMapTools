@@ -1,0 +1,40 @@
+----  / VibeyMapTools 2.1.0-2.0.0-alpha10-25-g50be6d63-dirty ----
+
+--- Options Summary ---
+    "nopercent" was set to "1" (from command line)
+    "nostat" was set to "1" (from command line)
+    "noprogress" was set to "1" (from command line)
+    "path" was set to ""C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\q2_wal_metadata"" (from command line)
+
+Input file: C:\Users\djdac\source\repos\VibeyMapTools\tests\maps\q1_light_invalid_delay.map
+Output file: C:\Users\djdac\source\repos\VibeyMapTools\q1_light_invalid_delay.bsp
+
+INFO: using built-in palette.
+WARNING: texture name openquartzmirror (C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\deprecated/free_wad.wad) is not null-terminated
+INFO: world extents calculated to 3208 units
+WARNING: unable to find texture skip
+Processing hull 0...
+Processing hull 1...
+ERROR TO FIX LATER: clock counter ended too early
+Processing hull 2...
+ERROR TO FIX LATER: clock counter ended too early
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_light_invalid_delay.bsp as Quake BSP bsp29
+Wrote C:\Users\djdac\source\repos\VibeyMapTools\q1_light_invalid_delay.bsp
+
+count   lump name    byte size 
+      1 models               64
+     17 planes              340
+     38 vertexes            456
+      6 nodes               144
+      4 texinfos            160
+     32 faces               640
+     12 clipnodes            96
+      2 leafs                56
+     32 marksurfaces         64
+     69 edges               276
+    136 surfedges           544
+      2 textures           5492
+        lightdata             0
+        visdata               0
+        entdata             212
+running with lower priority

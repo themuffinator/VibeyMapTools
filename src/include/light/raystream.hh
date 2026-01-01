@@ -5,7 +5,7 @@
 
 // Forward declarations
 struct triinfo;
-struct modelinfo_t;
+class modelinfo_t;
 
 enum class hittype_t : uint8_t
 {
@@ -62,7 +62,7 @@ public:
     // Actually they are the same, just the trace function differs.
 };
 
-class RayStreamOcclusion : public RayStream
+class RayStreamOcclusion : public virtual RayStream
 {
 public:
     virtual void pushRay(int index, const qvec3f &origin, const qvec3f &dir, float dist, const qvec3f *color = nullptr,
@@ -75,7 +75,7 @@ public:
     virtual const qvec3f &getPushedRayDir(size_t j) const = 0;
 };
 
-class RayStreamIntersection : public RayStream
+class RayStreamIntersection : public virtual RayStream
 {
 public:
     virtual void pushRay(int index, const qvec3f &origin, const qvec3f &dir, float dist, const qvec3f *color = nullptr,

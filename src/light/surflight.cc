@@ -19,6 +19,7 @@ See file, 'COPYING', for details.
 */
 
 #include <light/surflight.hh>
+#include <light/lightcontext.hh>
 
 #include <cassert>
 
@@ -63,7 +64,7 @@ static void MakeSurfaceLight(const mbsp_t *bsp, const settings::worldspawn_keys 
     auto poly = Face_Points(bsp, face);
     const float facearea = qv::PolyArea(poly.begin(), poly.end());
 
-    const surfflags_t &extended_flags = extended_texinfo_flags[face->texinfo];
+    const surfflags_t &extended_flags = g_ctx->extended_texinfo_flags[face->texinfo];
 
     // Avoid small, or zero-area faces
     if (facearea < 1)

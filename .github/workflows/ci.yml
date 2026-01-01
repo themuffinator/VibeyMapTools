@@ -1,67 +1,23 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
+  pull_request:
   push:
     branches: [main, develop]
-    tags: ['v*']
-  pull_request:
-    branches: [main]
 
 env:
   BUILD_TYPE: Release
+  EMBREE_VERSION: 4.4.0
+  TBB_VERSION: 2021.11.0
 
 jobs:
-  # ==========================================================================
-  # Version Extraction
-  # ==========================================================================
-  version:
-    name: Extract Version
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      version_full: ${{ steps.version.outputs.version_full }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Get version from VERSION file
-        id: version
-        run: |
-          VERSION=$(cat VERSION | tr -d '\n\r')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            TAG_VERSION="${GITHUB_REF#refs/tags/v}"
-            echo "version_full=$TAG_VERSION" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == refs/heads/* ]]; then
-            BRANCH="${GITHUB_REF#refs/heads/}"
-            SHORT_SHA="${GITHUB_SHA::7}"
-            echo "version_full=$VERSION-$BRANCH-$SHORT_SHA" >> $GITHUB_OUTPUT
-          else
-            echo "version_full=$VERSION-dev" >> $GITHUB_OUTPUT
-          fi
-
-  # ==========================================================================
-  # Build Jobs
-  # ==========================================================================
   build:
     name: Build (${{ matrix.os }})
-    needs: version
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-22.04
-            artifact_name: vibeymaptools-linux
-            archive_ext: .tar.gz
-          - os: windows-2022
-            artifact_name: vibeymaptools-windows
-            archive_ext: .zip
-          - os: macos-14
-            artifact_name: vibeymaptools-macos
-            archive_ext: .tar.gz
+        os: [ubuntu-22.04, macos-14, windows-2022]
 
     steps:
       - uses: actions/checkout@v4
@@ -69,145 +25,73 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      # ---- Linux Setup ----
-      - name: 'Linux: Install dependencies'
+      - name: Linux dependencies
         if: startsWith(matrix.os, 'ubuntu-')
         run: |
           sudo apt update
-          sudo apt install -y qt6-base-dev libgl1-mesa-dev libtbb-dev libembree-dev
+          sudo apt install -y qt6-base-dev libgl1-mesa-dev
 
-      # ---- macOS Setup ----
-      - name: 'macOS: Install Qt6'
+      - name: Linux Embree and TBB
+        if: startsWith(matrix.os, 'ubuntu-')
+        run: |
+          mkdir -p deps/embree
+          curl -L "https://github.com/RenderKit/embree/releases/download/v${{ env.EMBREE_VERSION }}/embree-${{ env.EMBREE_VERSION }}.x86_64.linux.tar.gz" -o deps/embree.tgz
+          tar xf deps/embree.tgz -C deps/embree
+          curl -L "https://github.com/uxlfoundation/oneTBB/releases/download/v${{ env.TBB_VERSION }}/oneapi-tbb-${{ env.TBB_VERSION }}-lin.tgz" -o deps/tbb.tgz
+          tar xf deps/tbb.tgz -C deps
+          echo "CMAKE_PREFIX_PATH=${PWD}/deps/embree;${PWD}/deps/oneapi-tbb-${{ env.TBB_VERSION }}" >> $GITHUB_ENV
+
+      - name: macOS Qt
         if: startsWith(matrix.os, 'macos-')
         uses: jurplel/install-qt-action@v4
         with:
-          version: 6.4.3
+          version: 6.7.0
 
-      - name: 'macOS: Install dependencies'
+      - name: macOS dependencies
         if: startsWith(matrix.os, 'macos-')
         run: |
-          brew install tbb embree
+          brew update
+          brew install embree tbb
+          PREFIXES="$(brew --prefix embree);$(brew --prefix tbb)"
+          if [ -n "${Qt6_DIR}" ]; then
+            PREFIXES="${PREFIXES};${Qt6_DIR}"
+          fi
+          echo "CMAKE_PREFIX_PATH=${PREFIXES}" >> $GITHUB_ENV
 
-      # ---- Windows Setup ----
-      - name: 'Windows: Setup MSVC'
+      - name: Windows MSVC
         if: startsWith(matrix.os, 'windows-')
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: 'Windows: Install Qt6'
+      - name: Windows Qt
         if: startsWith(matrix.os, 'windows-')
         uses: jurplel/install-qt-action@v4
         with:
           version: 6.7.0
 
-      # ---- Build ----
-      - name: Configure CMake
+      - name: Windows Embree and TBB
+        if: startsWith(matrix.os, 'windows-')
+        shell: pwsh
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+          $ErrorActionPreference = "Stop"
+          $deps = Join-Path $env:GITHUB_WORKSPACE "deps"
+          New-Item -ItemType Directory -Force -Path $deps | Out-Null
+          $embreeZip = Join-Path $deps "embree.zip"
+          Invoke-WebRequest "https://github.com/RenderKit/embree/releases/download/v${{ env.EMBREE_VERSION }}/embree-${{ env.EMBREE_VERSION }}.x64.windows.zip" -OutFile $embreeZip
+          $embreeRoot = Join-Path $deps "embree"
+          New-Item -ItemType Directory -Force -Path $embreeRoot | Out-Null
+          Expand-Archive -Path $embreeZip -DestinationPath $embreeRoot -Force
+          $tbbZip = Join-Path $deps "tbb.zip"
+          Invoke-WebRequest "https://github.com/uxlfoundation/oneTBB/releases/download/v${{ env.TBB_VERSION }}/oneapi-tbb-${{ env.TBB_VERSION }}-win.zip" -OutFile $tbbZip
+          Expand-Archive -Path $tbbZip -DestinationPath $deps -Force
+          $prefixes = @($embreeRoot, (Join-Path $deps "oneapi-tbb-${{ env.TBB_VERSION }}"))
+          if ($env:Qt6_DIR) { $prefixes += $env:Qt6_DIR }
+          "CMAKE_PREFIX_PATH=$($prefixes -join ';')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding ascii
+
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_PREFIX_PATH="${{ env.CMAKE_PREFIX_PATH }}"
 
       - name: Build
         run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
-      - name: Run Tests
+      - name: Test
         run: ctest --test-dir build --output-on-failure --build-config ${{ env.BUILD_TYPE }}
-
-      - name: Package
-        run: cmake --build build --target package --config ${{ env.BUILD_TYPE }}
-
-      # ---- Upload Artifacts ----
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact_name }}-${{ needs.version.outputs.version_full }}
-          path: build/VibeyMapTools-*${{ matrix.archive_ext }}
-          if-no-files-found: warn
-
-  # ==========================================================================
-  # Release Job
-  # ==========================================================================
-  release:
-    name: Create Release
-    needs: [version, build]
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Generate Release Notes
-        id: notes
-        run: |
-          VERSION="${{ needs.version.outputs.version }}"
-          cat << 'EOF' > release_notes.md
-          # VibeyMapTools ${{ needs.version.outputs.version }}
-          
-          ## Downloads
-          
-          | Platform | Download |
-          |----------|----------|
-          | Windows | `vibeymaptools-windows-${{ needs.version.outputs.version_full }}.zip` |
-          | Linux | `vibeymaptools-linux-${{ needs.version.outputs.version_full }}.tar.gz` |
-          | macOS | `vibeymaptools-macos-${{ needs.version.outputs.version_full }}.tar.gz` |
-          
-          ## What's New
-          
-          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
-          
-          ## Features
-          
-          - GPU-accelerated raytracing (OptiX)
-          - Intel OIDN denoising
-          - Stochastic light sampling
-          - Incremental lighting
-          - HDR lightmap support
-          EOF
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: VibeyMapTools ${{ needs.version.outputs.version }}
-          body_path: release_notes.md
-          draft: true
-          prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') }}
-          files: |
-            artifacts/**/*
-
-  # ==========================================================================
-  # Nightly Build
-  # ==========================================================================
-  nightly:
-    name: Nightly Build
-    if: github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    needs: [version, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Update Nightly Release
-        uses: andelf/nightly-release@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: nightly
-          name: 'Nightly Build'
-          prerelease: true
-          body: |
-            Automated nightly build from main branch.
-            Version: ${{ needs.version.outputs.version_full }}
-            Commit: ${{ github.sha }}
-          files: |
-            artifacts/**/*

@@ -18,6 +18,7 @@
 */
 
 #include <light/trace_embree.hh>
+#include <light/lightcontext.hh>
 
 #include <light/light.hh>
 #include <light/lightcontext.hh>
@@ -40,6 +41,57 @@ static RTCDevice device;
 RTCScene scene;
 
 static const mbsp_t *bsp_static;
+
+static bool Face_IsDetailFenceForLighting(const mbsp_t *bsp, const mface_t *face)
+{
+    if (bsp->loadversion->game->id == GAME_QUAKE_II) {
+        return false;
+    }
+
+    const auto &extended_content_flags = g_ctx->extended_content_flags;
+    if (extended_content_flags.empty()) {
+        return false;
+    }
+
+    const qvec3f center = Face_Centroid(bsp, face);
+    const qvec3f normal = qvec3f(Face_Normal(bsp, face));
+    constexpr float kOffset = 1.0f;
+
+    auto is_fence_leaf = [&](const qvec3f &point) -> bool {
+        const mleaf_t *leaf = Light_PointInLeaf(bsp, point);
+        const int leafnum = BSP_GetLeafNum(bsp, leaf);
+        if (leafnum < 0 || leafnum >= static_cast<int>(extended_content_flags.size())) {
+            return false;
+        }
+        return extended_content_flags[leafnum].is_fence();
+    };
+
+    return is_fence_leaf(center + (normal * kOffset)) || is_fence_leaf(center - (normal * kOffset));
+}
+
+static bool PointIsDetailFenceForLighting(const mbsp_t *bsp, const qvec3f &point, const qvec3f &dir)
+{
+    if (bsp->loadversion->game->id == GAME_QUAKE_II) {
+        return false;
+    }
+
+    const auto &extended_content_flags = g_ctx->extended_content_flags;
+    if (extended_content_flags.empty()) {
+        return false;
+    }
+
+    constexpr float kEpsilon = 1.0f;
+    auto is_fence_leaf = [&](const qvec3f &probe) -> bool {
+        const mleaf_t *leaf = Light_PointInLeaf(bsp, probe);
+        const int leafnum = BSP_GetLeafNum(bsp, leaf);
+        if (leafnum < 0 || leafnum >= static_cast<int>(extended_content_flags.size())) {
+            return false;
+        }
+        return extended_content_flags[leafnum].is_fence();
+    };
+
+    return is_fence_leaf(point + (dir * kEpsilon)) || is_fence_leaf(point - (dir * kEpsilon));
+}
 
 void ResetEmbree()
 {
@@ -103,6 +155,8 @@ static float Face_Alpha(const mbsp_t *bsp, const modelinfo_t *modelinfo, const m
 sceneinfo CreateGeometry(
     const mbsp_t *bsp, RTCDevice g_device, RTCScene scene, const std::vector<const mface_t *> &faces)
 {
+    const auto &extended_texinfo_flags = g_ctx->extended_texinfo_flags;
+
     unsigned int geomID;
     RTCGeometry geom_0 = rtcNewGeometry(g_device, RTC_GEOMETRY_TYPE_TRIANGLE);
     // we're not using masks, but they need to be set to something or else all rays miss
@@ -154,6 +208,7 @@ sceneinfo CreateGeometry(
         info.texinfo = &bsp->texinfo[face->texinfo];
 
         info.texture = Face_Texture(bsp, face);
+        info.transparent_for_lighting = Face_IsDetailFenceForLighting(bsp, face);
 
         // FIXME: don't these need to check extended_flags?
         info.shadowworldonly = modelinfo->shadowworldonly.boolValue();
@@ -346,6 +401,22 @@ static void Embree_FilterFuncN(const struct RTCFilterFunctionNArguments *args)
             continue;
         }
 
+        if (hit_triinfo.transparent_for_lighting) {
+            // detail fence/illusionary: no shadowing
+            valid[i] = INVALID;
+            continue;
+        }
+
+        if (bsp_static->loadversion->game->id != GAME_QUAKE_II) {
+            qvec3f rayDir =
+                qv::normalize(qvec3f{RTCRayN_dir_x(ray, N, i), RTCRayN_dir_y(ray, N, i), RTCRayN_dir_z(ray, N, i)});
+            qvec3f hitpoint = Embree_RayEndpoint(ray, rayDir, N, i);
+            if (PointIsDetailFenceForLighting(bsp_static, hitpoint, rayDir)) {
+                valid[i] = INVALID;
+                continue;
+            }
+        }
+
         if (hit_triinfo.shadowworldonly) {
             // we hit "_shadowworldonly" "1" geometry. Ignore the hit unless we are from world.
             if (!source_modelinfo || !source_modelinfo->isWorld()) {
@@ -435,6 +506,7 @@ static void PerRay_FilterFuncN(const struct RTCFilterFunctionNArguments *args)
 {
     int *const valid = args->valid;
     struct RTCHitN *const potentialHit = args->hit;
+    struct RTCRayN *const ray = args->ray;
     const unsigned int N = args->N;
 
     const int VALID = -1;
@@ -458,6 +530,22 @@ static void PerRay_FilterFuncN(const struct RTCFilterFunctionNArguments *args)
             // reject hit
             valid[i] = INVALID;
             continue;
+        }
+
+        if (hit_triinfo.transparent_for_lighting) {
+            // detail fence/illusionary: no shadowing
+            valid[i] = INVALID;
+            continue;
+        }
+
+        if (bsp_static->loadversion->game->id != GAME_QUAKE_II) {
+            qvec3f rayDir =
+                qv::normalize(qvec3f{RTCRayN_dir_x(ray, N, i), RTCRayN_dir_y(ray, N, i), RTCRayN_dir_z(ray, N, i)});
+            qvec3f hitpoint = Embree_RayEndpoint(ray, rayDir, N, i);
+            if (PointIsDetailFenceForLighting(bsp_static, hitpoint, rayDir)) {
+                valid[i] = INVALID;
+                continue;
+            }
         }
 
         // accept hit
@@ -551,6 +639,8 @@ void Embree_TraceInit(const mbsp_t *bsp)
     bsp_static = bsp;
     Q_assert(device == nullptr);
 
+    const auto &extended_texinfo_flags = g_ctx->extended_texinfo_flags;
+
     std::vector<const mface_t *> skyfaces, solidfaces, filterfaces;
 
     // check all modelinfos
@@ -596,6 +686,11 @@ void Embree_TraceInit(const mbsp_t *bsp)
             // mxd. Skip NODRAW faces, but not SKY ones (Q2's sky01.wal has both flags set)
             if (is_q2 && (contents_or_surf_flags & Q2_SURF_NODRAW) && !(contents_or_surf_flags & Q2_SURF_SKY))
                 continue;
+
+            if (Face_IsDetailFenceForLighting(bsp, face)) {
+                // detail fences should not occlude lighting
+                continue;
+            }
 
             // handle glass / water
             const float alpha = Face_Alpha(bsp, model, face);
@@ -683,6 +778,10 @@ void Embree_TraceInit(const mbsp_t *bsp)
 
     rtcSetGeometryIntersectFilterFunction(rtcGetGeometry(scene, filtergeom.geomID), Embree_FilterFuncN);
     rtcSetGeometryOccludedFilterFunction(rtcGetGeometry(scene, filtergeom.geomID), Embree_FilterFuncN);
+    if (bsp->loadversion->game->id != GAME_QUAKE_II) {
+        rtcSetGeometryIntersectFilterFunction(rtcGetGeometry(scene, solidgeom.geomID), Embree_FilterFuncN);
+        rtcSetGeometryOccludedFilterFunction(rtcGetGeometry(scene, solidgeom.geomID), Embree_FilterFuncN);
+    }
 
     rtcCommitScene(scene);
 

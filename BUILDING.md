@@ -172,7 +172,9 @@ python tests/regression.py --update
 
 VibeyMapTools uses [Semantic Versioning](https://semver.org/):
 - **MAJOR.MINOR.PATCH** (e.g., 2.1.0)
-- Version stored in `VERSION` file
+- `VERSION` stores the base (next) version
+- Git tags `vMAJOR.MINOR.PATCH[-prerelease]` are the source of truth for releases
+- Non-tag builds append `-dev.<commits>+g<sha>` or `+dirty` metadata
 - CMake generates `version.hh` with compile-time constants
 
 ### Version Header Usage
@@ -190,24 +192,15 @@ if (vibey::version::has_optix()) {
 ```
 
 ### Creating a Release
-
-**Manual:**
-1. Update VERSION file with new version
-2. Update CHANGELOG.md
-3. Create tag: `git tag -a v2.1.0 -m "Release 2.1.0"`
-4. Push tag: `git push origin v2.1.0`
-
-**Automated (via GitHub Actions):**
-1. Go to Actions → "Release Automation"
-2. Click "Run workflow"
-3. Select bump type (patch/minor/major)
-4. Optionally add pre-release tag (alpha/beta/rc)
+1. Update `VERSION` and `CHANGELOG.md`
+2. Create an annotated tag: `git tag -a v2.1.0 -m "Release 2.1.0"`
+3. Push the tag: `git push origin v2.1.0`
+4. The `Release` GitHub Action builds and drafts the release with packages
 
 ## CI/CD
 
 GitHub Actions provides:
 - Multi-platform builds (Windows, Linux, macOS)
-- Automated testing on every push
-- Draft releases on version tags
-- Nightly builds from main branch
+- Automated testing on pushes and pull requests
+- Draft releases with packaged artifacts on version tags
 

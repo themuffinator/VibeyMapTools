@@ -1,0 +1,44 @@
+----  / VibeyMapTools 2.1.0-2.0.0-alpha10-25-g50be6d63-dirty ----
+LoadBSPFile: 'C:\Users\djdac\source\repos\VibeyMapTools\q1_light_sun_artifact.bsp'
+BSP is version Quake BSP bsp29
+INFO: using built-in palette.
+img::ConvertTextures: WARNING: invalid size data for 
+Loading extended texinfo flags from C:\Users\djdac\source\repos\VibeyMapTools\q1_light_sun_artifact.texinfo.json...
+Loading extended content flags from C:\Users\djdac\source\repos\VibeyMapTools\q1_light_sun_artifact.content.json...
+3 entities read, 1 are lights.
+.lit colored light output requested on command line.
+
+--- Options Summary ---
+    "path" was set to ""C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\q2_wal_metadata"" (from command line)
+    "defaultpaths" was set to "0" (from command line)
+    "bounce" was set to "0" (from map)
+
+DecompressAllVis: invalid visofs for leaf 0
+Embree_TraceInit: Embree version: 4.4.0
+Embree_TraceInit: 
+	51 sky faces
+	30 solid faces
+	0 filtered faces
+	0 shadow-casting skip faces
+SetupLights: 1 initial lights
+SetupLights: 1 after surface lights
+SetupLights: 1 after jittering
+Final count: 1 lights, 1 suns in use.
+0 surface light points in use.
+Saving progress after direct lighting...
+Lighting Completed.
+
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_light_sun_artifact.lit
+Lighting Completed.
+
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_light_sun_artifact.lit
+img::ConvertTextures: WARNING: Texture  duplicated
+img::ConvertTextures: WARNING: Texture greystone2 duplicated
+img::ConvertTextures: WARNING: Texture sky3 duplicated
+img::ConvertTextures: WARNING: Texture sky_void duplicated
+0 switchable light styles (32 max)
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_light_sun_artifact.bsp as Quake BSP bsp29
+0.148s seconds elapsed
+0 empty lightmaps
+
+

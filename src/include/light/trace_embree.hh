@@ -109,6 +109,7 @@ struct triinfo
     const img::texture *texture;
     float alpha;
     bool is_fence, is_glass;
+    bool transparent_for_lighting = false;
 
     // cached from modelinfo for faster access
     bool shadowworldonly;

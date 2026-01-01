@@ -187,16 +187,15 @@ cd docs && make html
 
 ### GitHub Actions
 
-- `.github/workflows/ci.yml` - Main CI pipeline (build, test, package)
-- `.github/workflows/release.yml` - Release automation
-- `.github/workflows/continuous-building.yml` - Continuous builds
+- `.github/workflows/ci.yml` - Main CI pipeline (build, test)
+- `.github/workflows/release.yml` - Release build + packaging on version tags
 
 ### Triggering Releases
 
 1. Update `VERSION` file
 2. Update `CHANGELOG.md`
-3. Tag: `git tag v<version>`
-4. Push: `git push --tags`
+3. Tag: `git tag -a v<version> -m "Release v<version>"`
+4. Push: `git push origin v<version>`
 
 ## Important Files
 

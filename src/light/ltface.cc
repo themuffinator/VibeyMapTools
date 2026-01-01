@@ -443,8 +443,10 @@ static position_t PositionSamplePointOnFace(
         if (normTex && !normTex->pixels.empty()) {
             // Calculate UVs
             const mtexinfo_t *tex = &bsp->texinfo[face->texinfo];
-            float u = qv::dot(point, qvec3f(tex->vecs[0][0], tex->vecs[0][1], tex->vecs[0][2])) + tex->vecs[0][3];
-            float v = qv::dot(point, qvec3f(tex->vecs[1][0], tex->vecs[1][1], tex->vecs[1][2])) + tex->vecs[1][3];
+            const qvec4f svec = tex->vecs.row(0);
+            const qvec4f tvec = tex->vecs.row(1);
+            float u = qv::dot(point, svec.xyz()) + svec[3];
+            float v = qv::dot(point, tvec.xyz()) + tvec[3];
 
             // Sample texture (wrapping)
             int tu = (int)floor(u) % normTex->width;
@@ -563,7 +565,7 @@ static void CalcPoints(
         }
     }
 
-    if (dump_facenum == Face_GetNum(bsp, face)) {
+    if (g_ctx->dump_facenum == Face_GetNum(bsp, face)) {
         CalcPoints_Debug(surf, bsp);
     }
 }
@@ -669,6 +671,10 @@ static lightsurf_t Lightsurf_Init(const modelinfo_t *modelinfo, const settings::
     const mface_t *face, const mbsp_t *bsp, const facesup_t *facesup,
     const bspx_decoupled_lm_perface *facesup_decoupled)
 {
+    const auto &extended_texinfo_flags = g_ctx->extended_texinfo_flags;
+    RayStreamIntersection &intersection_stream = GetIntersectionStream();
+    RayStreamOcclusion &occlusion_stream = GetOcclusionStream();
+
     auto spaceToWorld = TexSpaceToWorld(bsp, face);
 
     /* Check for invalid texture axes */
@@ -1741,7 +1747,7 @@ static void LightFace_Min(const mbsp_t *bsp, const mface_t *face, const qvec3f &
 {
     const settings::worldspawn_keys &cfg = *lightsurf->cfg;
 
-    const surfflags_t &extended_flags = extended_texinfo_flags[face->texinfo];
+    const surfflags_t &extended_flags = g_ctx->extended_texinfo_flags[face->texinfo];
     if (extended_flags.no_minlight) {
         return; /* this face is excluded from minlight */
     }
@@ -1780,7 +1786,7 @@ static void LightFace_LocalMin(
     const settings::worldspawn_keys &cfg = *lightsurf->cfg;
     const modelinfo_t *modelinfo = lightsurf->modelinfo;
 
-    const surfflags_t &extended_flags = extended_texinfo_flags[face->texinfo];
+    const surfflags_t &extended_flags = g_ctx->extended_texinfo_flags[face->texinfo];
     if (extended_flags.no_minlight) {
         return; /* this face is excluded from minlight */
     }
@@ -2093,6 +2099,7 @@ LightFace_SurfaceLight(const mbsp_t *bsp, lightsurf_t *lightsurf, lightmapdict_t
     }
 
     RayStreamOcclusion &rs = GetOcclusionStream();
+    rs.clearPushedRays();
     rs.reserve(BATCH_SIZE);
     int current_batch_style = -1;
 
@@ -2139,7 +2146,7 @@ LightFace_SurfaceLight(const mbsp_t *bsp, lightsurf_t *lightsurf, lightmapdict_t
                     receiver_center = lightsurf->samples[lightsurf->samples.size() / 2].point;
                 }
 
-                float dist_sq = qv::length_sq(receiver_center - vpl.pos);
+                float dist_sq = qv::length2(receiver_center - vpl.pos);
                 dist_sq = std::max(dist_sq, 64.0f); // Min dist 8 units
 
                 // totalintensity is total light power. importance ~ power / dist^2
@@ -2310,7 +2317,7 @@ static void LightFace_DebugNeighbours(const mbsp_t *bsp, lightsurf_t *lightsurf,
 
     bool has_sample_on_dumpface = false;
     for (int i = 0; i < lightsurf->samples.size(); i++) {
-        if (lightsurf->samples[i].realfacenum == dump_facenum) {
+        if (lightsurf->samples[i].realfacenum == g_ctx->dump_facenum) {
             has_sample_on_dumpface = true;
             break;
         }
@@ -2321,7 +2328,7 @@ static void LightFace_DebugNeighbours(const mbsp_t *bsp, lightsurf_t *lightsurf,
         lightsample_t &sample = lightmap->samples[i];
         const int sample_face = lightsurf->samples[i].realfacenum;
 
-        if (sample_face == dump_facenum) {
+        if (sample_face == g_ctx->dump_facenum) {
             /* Red - the sample is on the selected face */
             sample.color = {255, 0, 0};
         } else if (has_sample_on_dumpface) {
@@ -2438,6 +2445,7 @@ inline qvec3f GetDirtVector(const settings::worldspawn_keys &cfg, int i)
 static void LightFace_CalculateDirt(lightsurf_t *lightsurf)
 {
     const settings::worldspawn_keys &cfg = *lightsurf->cfg;
+    RayStreamIntersection &intersection_stream = GetIntersectionStream();
 
     Q_assert(dirt_in_use);
 
@@ -2462,7 +2470,7 @@ static void LightFace_CalculateDirt(lightsurf_t *lightsurf)
     }
 
     for (int j = 0; j < numDirtVectors; j++) {
-        raystream_intersection_t &rs = intersection_stream;
+        RayStreamIntersection &rs = intersection_stream;
         rs.clearPushedRays();
 
         // fill in input buffers
@@ -2487,8 +2495,8 @@ static void LightFace_CalculateDirt(lightsurf_t *lightsurf)
 
         // accumulate hitdists
         for (int k = 0; k < rs.numPushedRays(); k++) {
-            const ray_io &ray = rs.getRay(k);
-            const int i = ray.index;
+            const RayPayload &payload = rs.getPayload(k);
+            const int i = payload.index;
             if (rs.getPushedRayHitType(k) == hittype_t::SOLID) {
                 const float dist = rs.getPushedRayHitDist(k);
                 lightsurf->samples[i].occlusion += std::min(cfg.dirtdepth.value(), dist);
@@ -2695,7 +2703,7 @@ void DirectLightFace(const mbsp_t *bsp, lightsurf_t &lightsurf, const settings::
         total_samplepoints += lightsurf.samples.size();
 #endif
 
-        const surfflags_t &extended_flags = extended_texinfo_flags[face->texinfo];
+        const surfflags_t &extended_flags = g_ctx->extended_texinfo_flags[face->texinfo];
 
         /* positive lights */
         if (!(modelinfo->lightignore.value() || extended_flags.light_ignore)) {
@@ -2747,7 +2755,7 @@ void IndirectLightFace(
     lightmapdict_t *lightmaps = &lightsurf.lightmapsByStyle;
 
     if (light_options.debugmode == debugmodes::none) {
-        const surfflags_t &extended_flags = extended_texinfo_flags[face->texinfo];
+        const surfflags_t &extended_flags = g_ctx->extended_texinfo_flags[face->texinfo];
 
         /* positive lights */
         if (!(modelinfo->lightignore.value() || extended_flags.light_ignore)) {
@@ -2907,7 +2915,7 @@ void PostProcessLightFace(const mbsp_t *bsp, lightsurf_t &lightsurf, const setti
         total_samplepoints += lightsurf.samples.size();
 #endif
 
-        const surfflags_t &extended_flags = extended_texinfo_flags[face->texinfo];
+        const surfflags_t &extended_flags = g_ctx->extended_texinfo_flags[face->texinfo];
 
         float minlight = 0;
         qvec3f minlight_color;

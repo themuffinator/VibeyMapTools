@@ -1,0 +1,43 @@
+----  / VibeyMapTools 2.1.0-2.0.0-alpha10-25-g50be6d63-dirty ----
+LoadBSPFile: 'C:\Users\djdac\source\repos\VibeyMapTools\q1_litwater.bsp'
+BSP is version Quake BSP bsp29
+INFO: using built-in palette.
+img::ConvertTextures: WARNING: invalid size data for 
+Loading extended texinfo flags from C:\Users\djdac\source\repos\VibeyMapTools\q1_litwater.texinfo.json...
+Loading extended content flags from C:\Users\djdac\source\repos\VibeyMapTools\q1_litwater.content.json...
+6 entities read, 4 are lights.
+
+--- Options Summary ---
+    "path" was set to ""C:/Users/djdac/source/repos/VibeyMapTools/tests/maps\q2_wal_metadata"" (from command line)
+    "defaultpaths" was set to "0" (from command line)
+
+DecompressAllVis: invalid visofs for leaf 0
+Embree_TraceInit: Embree version: 4.4.0
+Embree_TraceInit: 
+	0 sky faces
+	56 solid faces
+	0 filtered faces
+	0 shadow-casting skip faces
+SetupLights: 4 initial lights
+SetupLights: 4 after surface lights
+SetupLights: 4 after jittering
+Final count: 4 lights, 0 suns in use.
+0 surface light points in use.
+Saving progress after direct lighting...
+Colored light entities/settings detected: .lit output enabled.
+Lighting Completed.
+
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_litwater.lit
+Lighting Completed.
+
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_litwater.lit
+img::ConvertTextures: WARNING: Texture  duplicated
+img::ConvertTextures: WARNING: Texture bolt3 duplicated
+img::ConvertTextures: WARNING: Texture *lava_s2 duplicated
+img::ConvertTextures: WARNING: Texture *zwater1 duplicated
+0 switchable light styles (32 max)
+Writing C:\Users\djdac\source\repos\VibeyMapTools\q1_litwater.bsp as Quake BSP bsp29
+0.083s seconds elapsed
+0 empty lightmaps
+
+

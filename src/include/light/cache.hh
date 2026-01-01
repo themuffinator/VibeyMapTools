@@ -3,14 +3,13 @@
 #include <vector>
 #include <string>
 #include <cstdint>
-#include <vector>
 #include <map>
 
 #include <common/bspfile.hh>
 #include <light/light.hh>
 #include <light/entities.hh>
 
-struct face_cache_t
+struct light_face_cache_t
 {
     uint64_t light_hash;
     // We store the raw lightmap samples.
@@ -29,7 +28,7 @@ struct light_cache_t
     uint64_t bsp_checksum;
 
     // Map face index to cache data
-    std::map<int, face_cache_t> faces;
+    std::map<int, light_face_cache_t> faces;
 };
 
 bool LoadCache(const std::string &filename, light_cache_t &cache);

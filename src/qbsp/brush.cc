@@ -585,7 +585,7 @@ std::optional<bspbrush_t> LoadBrush(const mapentity_t &src, mapbrush_t &mapbrush
         // to the world extents (winding & bounds) which throws
         // a lot of warnings. is this how this should be working?
 #if 0
-        if (!hullnum.value_or(0) && mapbrush.is_hint()) {
+        if (!hullnum.value_or(0) && mapbrush.is_hint) {
             /* Don't generate hintskip faces */
             const maptexinfo_t &texinfo = src.get_texinfo();
 
@@ -608,7 +608,7 @@ std::optional<bspbrush_t> LoadBrush(const mapentity_t &src, mapbrush_t &mapbrush
         }
 #endif
 
-        if (hullnum.value_or(0) != 0 && mapbrush.is_hint()) {
+        if (hullnum.value_or(0) != 0 && mapbrush.is_hint) {
             continue;
         }
 
