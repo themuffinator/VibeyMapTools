@@ -117,11 +117,14 @@ cd VibeyMapTools && cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
+macOS 10.15+ prep: `brew install cmake embree tbb qt@6` (Qt6 only needed for `vmt-lightpreview`)
+
 <details>
 <summary><b>Requirements</b></summary>
 
 - CMake 3.14+
 - C++20 compiler (MSVC 2019+, GCC 9+, Clang 10+)
+- macOS 10.15+ (Catalina) recommended for Apple builds
 - Embree 4.x + oneTBB (required for `vmt-light`)
 
 **Optional extras:**

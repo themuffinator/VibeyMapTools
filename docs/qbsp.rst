@@ -630,6 +630,36 @@ Special Surfaces
    original coordinates of the center of the "origin" brush before it was
    translated to 0 0 0.
 
+Half-Life BSP Specific
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. texture:: !cur_0
+             !cur_90
+             !cur_180
+             !cur_270
+             !cur_up
+             !cur_dwn
+
+   These prefixes generate water with the given current direction:
+
+   ===================== =====
+   Content type          Value
+   ===================== =====
+   CONTENTS_CURRENT_0    -9
+   CONTENTS_CURRENT_90   -10
+   CONTENTS_CURRENT_180  -11
+   CONTENTS_CURRENT_270  -12
+   CONTENTS_CURRENT_UP   -13
+   CONTENTS_CURRENT_DOWN -14
+   ===================== =====
+
+   During the BSP process, they act like water with extra modifier flags.
+
+   .. note::
+
+      Different from the vanilla HL compiler, we don't generate faces between different ``CONTENTS_CURRENT_*`` textured
+      volumes.
+
 
 External Map Prefab Support
 ---------------------------

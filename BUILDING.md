@@ -77,11 +77,12 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . --parallel
 ```
 
-### macOS 🍎
+### macOS (10.15+) 🍎
 
 ```bash
 # Install dependencies via Homebrew
-brew install cmake embree tbb
+brew install cmake embree tbb qt@6
+# Qt6 is only needed for vmt-lightpreview
 
 # Clone and build
 git clone --recursive https://github.com/themuffinator/VibeyMapTools.git

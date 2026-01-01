@@ -10,6 +10,9 @@ For the detailed changelog with full technical details, see the [docs/changelog.
 
 This release continues the VibeyMapTools fork with rebranding and modernization.
 
+### Features
+- **vmt-bsp**: Half-Life `!cur_*` current contents support (`CONTENTS_CURRENT_*`)
+
 ### Changed
 - Project rebranded from ericw-tools to VibeyMapTools (VMT)
 - All executables now prefixed with `vmt-` for clarity
