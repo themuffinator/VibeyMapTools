@@ -98,7 +98,6 @@ vmt-light -gpu -extra4 -bounce 2 -denoise mymap.bsp
 - 🎛️ Stochastic sampling (`-stochastic`) for complex scenes
 - 🔁 Incremental lighting (`-incremental`) for fast iteration loops
 - 🌈 HDR lightmaps (`-lithdr`) for engines that support it
-- 🧭 Quake II + Remaster workflows (`-q2bsp`, `-lightgrid`)
 
 ## 📦 Downloads
 
@@ -152,3 +151,4 @@ GPL v3 - See [COPYING](COPYING)
 Based on <a href="https://github.com/ericwa/ericw-tools">ericw-tools</a> by Eric Wasylishen
 </sub>
 </div>
+
