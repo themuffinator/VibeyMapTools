@@ -1,6 +1,6 @@
-=======
-maputil
-=======
+﻿===========
+vmt-maputil
+===========
 
 MAP File Utility — Scripting and manipulation of Quake MAP files
 =================================================================
@@ -10,18 +10,18 @@ Synopsis
 
 .. code-block:: bash
 
-   maputil MAPFILE [OPTION]...
+   vmt-maputil MAPFILE [OPTION]...
 
 Description
 -----------
 
-:program:`maputil` is a utility for manipulating Quake .map files using Lua scripting.
+:program:`vmt-maputil` is a utility for manipulating Quake .map files using Lua scripting.
 It allows for complex transformations, queries, and format conversions on map data.
 
 Options
 -------
 
-.. program:: maputil
+.. program:: vmt-maputil
 
 .. option:: --script <path to Lua script file>
 
@@ -101,13 +101,13 @@ Usage Examples
 .. code-block:: bash
 
    # Query all entities with a specific classname
-   maputil mymap.map --query "return entities:filter(function(e) return e.dict.classname == 'light' end)"
+   vmt-maputil mymap.map --query "return entities:filter(function(e) return e.dict.classname == 'light' end)"
 
    # Convert map to Valve 220 format
-   maputil mymap.map --convert valve --save mymap_valve.map
+   vmt-maputil mymap.map --convert valve --save mymap_valve.map
 
    # Run a custom Lua script
-   maputil mymap.map --script transform.lua --save mymap_modified.map
+   vmt-maputil mymap.map --script transform.lua --save mymap_modified.map
 
 
 See Also

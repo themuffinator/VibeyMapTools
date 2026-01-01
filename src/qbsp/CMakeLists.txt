@@ -36,15 +36,15 @@ add_library(libqbsp STATIC ${QBSP_SOURCES})
 
 target_link_libraries(libqbsp common ${CMAKE_THREAD_LIBS_INIT} TBB::tbb TBB::tbbmalloc fmt::fmt jsoncpp_static pareto)
 
-add_executable(vmt-qbsp main.cc)
-target_link_libraries(vmt-qbsp libqbsp)
+add_executable(vmt-bsp main.cc)
+target_link_libraries(vmt-bsp libqbsp)
 
-install(TARGETS vmt-qbsp RUNTIME DESTINATION .)
+install(TARGETS vmt-bsp RUNTIME DESTINATION .)
 
 # HACK: copy .dll dependencies
-add_custom_command(TARGET vmt-qbsp POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbb>" "$<TARGET_FILE_DIR:vmt-qbsp>"
-				   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbbmalloc>" "$<TARGET_FILE_DIR:vmt-qbsp>")
+add_custom_command(TARGET vmt-bsp POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbb>" "$<TARGET_FILE_DIR:vmt-bsp>"
+				   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbbmalloc>" "$<TARGET_FILE_DIR:vmt-bsp>")
 
-copy_mingw_dlls(vmt-qbsp)
-add_loader_path_to_rpath(vmt-qbsp)
+copy_mingw_dlls(vmt-bsp)
+add_loader_path_to_rpath(vmt-bsp)

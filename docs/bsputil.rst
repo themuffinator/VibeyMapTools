@@ -1,4 +1,4 @@
-==========
+﻿==========
 vmt-bsputil
 ==========
 
@@ -22,7 +22,7 @@ inspecting BSP data.
 Options
 -------
 
-.. program:: bsputil
+.. program:: vmt-bsputil
 
 Scaling
 ~~~~~~~

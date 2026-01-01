@@ -1,4 +1,4 @@
-=======
+﻿=======
 vmt-bsp
 =======
 
@@ -32,7 +32,7 @@ Supported Games
 Options
 -------
 
-.. program:: qbsp
+.. program:: vmt-bsp
 
 General Options
 ~~~~~~~~~~~~~~~

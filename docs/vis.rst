@@ -1,4 +1,4 @@
-=======
+﻿=======
 vmt-vis
 =======
 
@@ -36,7 +36,7 @@ See the :doc:`qbsp` documentation for details.
 Options
 -------
 
-.. program:: vis
+.. program:: vmt-vis
 
 Logging Options
 ~~~~~~~~~~~~~~~

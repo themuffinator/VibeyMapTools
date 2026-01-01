@@ -1,27 +1,51 @@
-# Building VibeyMapTools
+﻿# Building VibeyMapTools 🛠️🧃✨
 
-This document describes how to build VibeyMapTools from source.
+This document describes how to build VibeyMapTools from source. Expect CMake, some dependencies, and a sprinkle of vibes. ✨
 
-## Prerequisites
+## 🔁 Coming from ericw-tools? Quick translation 🧭
+
+Same workflow, new name, extra toys. If you used ericw-tools, this should feel instantly familiar.
+
+| ericw-tools | VibeyMapTools |
+|-------------|---------------|
+| `qbsp` | `vmt-bsp` |
+| `vis` | `vmt-vis` |
+| `light` | `vmt-light` |
+| `bspinfo` | `vmt-bspinfo` |
+| `bsputil` | `vmt-bsputil` |
+| `maputil` | `vmt-maputil` |
+| `lightpreview` | `vmt-lightpreview` |
+
+**Still the same (legacy comfy mode):**
+- Quake II + Remaster support stays put (`-q2bsp`, `-lightgrid`, `-world_units_per_luxel`) 🧠🎮
+- CLI flags, map formats, and output expectations
+- Upstream docs still apply: https://ericwa.github.io/ericw-tools/ 📚
+
+**VMT upgrades (build + release glow):**
+- `vmt-` prefix on every binary so ericw-tools can live side-by-side 🧹✨
+- Semantic versioning + tag-driven releases with CI-built packages 📦🚀
+- Build metadata + `version.hh` for scripting and diagnostics 🧾🛠️
+
+
+## 🧃 Prerequisites (the snack list)
 
 ### Required
-- **CMake** 3.16 or later
-- **C++17 compatible compiler**:
+- **CMake 3.14+**
+- **C++20 compiler**:
   - Visual Studio 2019+ (Windows)
   - GCC 9+ (Linux)
   - Clang 10+ (macOS/Linux)
-- **Git** (for submodule dependencies)
+- **Git** (for submodules)
+- **Intel Embree 4.x + oneTBB** (required for `vmt-light` builds)
 
-### Optional (for enhanced features)
-- **Intel Embree 3.x/4.x** - CPU raytracing acceleration (highly recommended)
-- **Intel TBB** - Thread Building Blocks (usually bundled with Embree)
-- **NVIDIA CUDA Toolkit** - For GPU raytracing
-- **NVIDIA OptiX SDK 7.x** - GPU raytracing backend
-- **Intel Open Image Denoise (OIDN)** - AI-based lightmap denoising
+### Optional extras (spicy toppings)
+- **Qt6** (for `vmt-lightpreview`)
+- **NVIDIA CUDA Toolkit** + **OptiX SDK 7.x** (GPU raytracing)
+- **Intel Open Image Denoise (OIDN)** (AI-based lightmap denoising)
 
-## Quick Start
+## 🚀 Quick Start
 
-### Windows (Visual Studio)
+### Windows (Visual Studio) 🪟
 
 ```powershell
 # Clone with submodules
@@ -37,7 +61,7 @@ cmake .. -G "Visual Studio 17 2022" -A x64
 cmake --build . --config Release
 ```
 
-### Linux
+### Linux 🐧
 
 ```bash
 # Install dependencies (Ubuntu/Debian)
@@ -50,10 +74,10 @@ cd VibeyMapTools
 # Build
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
+cmake --build . --parallel
 ```
 
-### macOS
+### macOS 🍎
 
 ```bash
 # Install dependencies via Homebrew
@@ -64,21 +88,29 @@ git clone --recursive https://github.com/themuffinator/VibeyMapTools.git
 cd VibeyMapTools
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(sysctl -n hw.ncpu)
+cmake --build . --parallel
 ```
 
-## Optional Dependencies Setup
+## 🧪 Compile Settings & Build Types
 
-### Intel Embree
+- Single-config generators (Ninja, Makefiles): set `-DCMAKE_BUILD_TYPE=Release|RelWithDebInfo|Debug`.
+- Multi-config generators (Visual Studio, Xcode, Ninja Multi-Config): use `--config Release|RelWithDebInfo|Debug` and skip `CMAKE_BUILD_TYPE`.
+- Release enables LTO/IPO by default; Debug and RelWithDebInfo disable IPO for faster iteration.
+- `VIBEYMAPTOOLS_ASAN=YES` enables AddressSanitizer (Clang/GCC; MSVC where supported).
+- `VIBEYMAPTOOLS_TIMETRACE=YES` emits Clang `-ftime-trace` JSON per translation unit.
+- `NO_ITERATOR_DEBUG=ON` disables MSVC iterator debugging for speed.
 
-Download from https://www.embree.org/ or install via package manager.
+## 🔧 Dependency Hints
 
-Set `EMBREE_ROOT_DIR` if not in standard location:
+### Embree + TBB (required)
+
+If CMake cannot find them, pass the package config paths:
+
 ```bash
-cmake .. -DEMBREE_ROOT_DIR=/path/to/embree
+cmake .. -Dembree_DIR=/path/to/embree/lib/cmake/embree-4.x -DTBB_DIR=/path/to/tbb/lib/cmake/tbb
 ```
 
-### NVIDIA OptiX (GPU Raytracing)
+### NVIDIA OptiX (GPU Raytracing) ⚡
 
 1. Install CUDA Toolkit from https://developer.nvidia.com/cuda-toolkit
 2. Download OptiX SDK from https://developer.nvidia.com/designworks/optix/download
@@ -87,9 +119,9 @@ cmake .. -DEMBREE_ROOT_DIR=/path/to/embree
    $env:OPTIX_ROOT_DIR = "C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.7.0"
    ```
 
-CMake will automatically detect OptiX and enable GPU support.
+CMake will detect OptiX and enable GPU support.
 
-### Intel OIDN (AI Denoising)
+### Intel OIDN (AI Denoising) 🤖
 
 Download from https://www.openimagedenoise.org/downloads.html
 
@@ -97,15 +129,18 @@ Download from https://www.openimagedenoise.org/downloads.html
 cmake .. -DOpenImageDenoise_DIR=/path/to/oidn/lib/cmake/OpenImageDenoise
 ```
 
-## CMake Options
+## 🧰 CMake Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `SKIP_TBB_INSTALL` | OFF | Skip TBB library installation |
-| `SKIP_EMBREE_INSTALL` | OFF | Skip Embree library installation |
+| `ENABLE_LIGHTPREVIEW` | ON | Enable Qt-based `vmt-lightpreview` |
+| `DISABLE_TESTS` | OFF | Skip building tests |
+| `DISABLE_DOCS` | OFF | Skip docs build |
+| `VIBEYMAPTOOLS_ASAN` | OFF | Enable AddressSanitizer for all targets |
+| `VIBEYMAPTOOLS_TIMETRACE` | OFF | Enable Clang `-ftime-trace` output |
 | `CMAKE_BUILD_TYPE` | Release | Build type (Debug/Release/RelWithDebInfo) |
 
-## Build Outputs
+## 🧪 Build Outputs
 
 After a successful build, you'll find in `build/`:
 
@@ -116,16 +151,17 @@ After a successful build, you'll find in `build/`:
 | `vmt-light` | Light compiler - calculates lightmaps |
 | `vmt-bspinfo` | BSP information utility |
 | `vmt-bsputil` | BSP manipulation utility |
-| `lightpreview` | Real-time lighting preview (experimental) |
+| `vmt-maputil` | Lua scripting for .map workflows |
+| `vmt-lightpreview` | Realtime lighting preview (experimental) |
 
-## Running Tests
+## ✅ Running Tests
 
 ```bash
 cd build
 ctest --output-on-failure
 ```
 
-## Regression Testing
+## 🧪 Regression Testing
 
 ```bash
 python tests/regression.py
@@ -136,30 +172,30 @@ To update golden hashes after intentional changes:
 python tests/regression.py --update
 ```
 
-## Troubleshooting
+## 🧯 Troubleshooting
 
-### "Embree not found"
-- Ensure Embree is installed and `EMBREE_ROOT_DIR` is set correctly
-- Check that the Embree version matches (3.x or 4.x)
+### "Embree/TBB not found" 🔧
+- Ensure Embree 4.x and oneTBB are installed
+- Pass `embree_DIR` and `TBB_DIR` to CMake if needed
 
-### "OptiX headers not found"
-- Set `OPTIX_ROOT_DIR` environment variable to the OptiX SDK path
-- Ensure CUDA Toolkit is installed first
+### "OptiX headers not found" ⚡
+- Set `OPTIX_ROOT_DIR` to the OptiX SDK path
+- Install CUDA Toolkit first
 
-### "OIDN not found"
+### "OIDN not found" 🤖
 - Set `OpenImageDenoise_DIR` to the OIDN CMake config directory
-- OIDN is optional - bilateral filter will be used as fallback
+- OIDN is optional; the bilateral filter will be used as fallback
 
-### Lint/clangd errors in IDE
-- These are often due to IDE not understanding the CMake configuration
+### Lint/clangd errors in IDE 🧠
+- IDEs sometimes miss the full CMake configuration
 - The project should still compile correctly via CMake
 
-## Development
+## 🧑‍💻 Development
 
 ### Code Style
 - 4-space indentation
 - Allman brace style
-- Snake_case for functions, PascalCase for classes
+- snake_case for functions, PascalCase for classes
 
 ### Adding New Features
 1. Create feature branch
@@ -168,16 +204,17 @@ python tests/regression.py --update
 4. Update documentation (CHANGELOG.md, WIKI.md)
 5. Submit pull request
 
-## Versioning
+## 🧬 Versioning
 
 VibeyMapTools uses [Semantic Versioning](https://semver.org/):
 - **MAJOR.MINOR.PATCH** (e.g., 2.1.0)
 - `VERSION` stores the base (next) version
 - Git tags `vMAJOR.MINOR.PATCH[-prerelease]` are the source of truth for releases
 - Non-tag builds append `-dev.<commits>+g<sha>` or `+dirty` metadata
-- CMake generates `version.hh` with compile-time constants
+- CMake generates `version.hh` with compile-time constants in `build/include`
 
 ### Version Header Usage
+
 ```cpp
 #include <version.hh>
 
@@ -191,16 +228,15 @@ if (vibey::version::has_optix()) {
 }
 ```
 
-### Creating a Release
+### Creating a Release ✨
 1. Update `VERSION` and `CHANGELOG.md`
 2. Create an annotated tag: `git tag -a v2.1.0 -m "Release 2.1.0"`
 3. Push the tag: `git push origin v2.1.0`
-4. The `Release` GitHub Action builds and drafts the release with packages
+4. The Release GitHub Action builds and drafts the release with packages
 
-## CI/CD
+## 🤖 CI/CD
 
 GitHub Actions provides:
 - Multi-platform builds (Windows, Linux, macOS)
 - Automated testing on pushes and pull requests
 - Draft releases with packaged artifacts on version tags
-

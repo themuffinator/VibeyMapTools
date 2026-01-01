@@ -1,6 +1,6 @@
-============
-lightpreview
-============
+﻿================
+vmt-lightpreview
+================
 
 Real-Time Lighting Preview — GUI tool for interactive BSP compilation and visualization
 ========================================================================================
@@ -8,7 +8,7 @@ Real-Time Lighting Preview — GUI tool for interactive BSP compilation and visu
 Description
 -----------
 
-:program:`lightpreview` is a graphical tool that unifies :doc:`qbsp`, :doc:`vis`, 
+:program:`vmt-lightpreview` is a graphical tool that unifies :doc:`qbsp`, :doc:`vis`, 
 and :doc:`light` with a 3D viewport for visualizing the output in real-time.
 
 .. note::
@@ -52,7 +52,7 @@ Usage
 
 .. code-block:: bash
 
-   lightpreview mymap.map
+   vmt-lightpreview mymap.map
 
 The tool will automatically compile the map and display it in the viewport.
 Changes to lighting parameters can be previewed interactively.

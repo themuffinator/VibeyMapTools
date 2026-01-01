@@ -1,4 +1,4 @@
-project (lightpreview CXX)
+project (vmt-lightpreview CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -6,7 +6,7 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt6 COMPONENTS OpenGL Widgets OpenGLWidgets)
 if(Qt6_FOUND)
 else()
-    message(WARNING "Qt6 not found, disabling lightpreview")
+    message(WARNING "Qt6 not found, disabling vmt-lightpreview")
     return()
 endif()
 
@@ -16,7 +16,7 @@ if ("${Qt6_VERSION}" VERSION_GREATER_EQUAL "6.3.0")
     qt_standard_project_setup()
 endif()
 
-qt_add_executable(lightpreview
+qt_add_executable(vmt-lightpreview
     main.cpp
     mainwindow.cpp
     mainwindow.h
@@ -25,8 +25,8 @@ qt_add_executable(lightpreview
         stats.cpp
         stats.h)
 
-set_target_properties(lightpreview PROPERTIES WIN32_EXECUTABLE YES)
-set_target_properties(lightpreview PROPERTIES MACOSX_BUNDLE TRUE)
+set_target_properties(vmt-lightpreview PROPERTIES WIN32_EXECUTABLE YES)
+set_target_properties(vmt-lightpreview PROPERTIES MACOSX_BUNDLE TRUE)
 
 INCLUDE_DIRECTORIES(${EMBREE_INCLUDE_DIRS})
 
@@ -39,7 +39,7 @@ if (NOT EMBREE_TBB_DLL STREQUAL EMBREE_TBB_DLL-NOTFOUND)
     message(STATUS "Found embree EMBREE_TBB_DLL: ${EMBREE_TBB_DLL}")
 endif()
 
-target_link_libraries(lightpreview
+target_link_libraries(vmt-lightpreview
         PRIVATE
         Qt6::Core
         Qt6::Widgets
@@ -58,30 +58,30 @@ target_link_libraries(lightpreview
 # Copy Qt DLL's to bin directory for debugging
 if (WIN32)
     add_custom_command(
-        TARGET lightpreview POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::Core> $<TARGET_FILE_DIR:lightpreview>/$<TARGET_FILE_NAME:Qt6::Core>
-        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::Widgets> $<TARGET_FILE_DIR:lightpreview>/$<TARGET_FILE_NAME:Qt6::Widgets>
-        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::Gui> $<TARGET_FILE_DIR:lightpreview>/$<TARGET_FILE_NAME:Qt6::Gui>
-        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::OpenGL> $<TARGET_FILE_DIR:lightpreview>/$<TARGET_FILE_NAME:Qt6::OpenGL>
-        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::OpenGLWidgets> $<TARGET_FILE_DIR:lightpreview>/$<TARGET_FILE_NAME:Qt6::OpenGLWidgets>
-        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:lightpreview>/plugins/platforms
-        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin> $<TARGET_FILE_DIR:lightpreview>/plugins/platforms/$<TARGET_FILE_NAME:Qt6::QWindowsIntegrationPlugin>
+        TARGET vmt-lightpreview POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::Core> $<TARGET_FILE_DIR:vmt-lightpreview>/$<TARGET_FILE_NAME:Qt6::Core>
+        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::Widgets> $<TARGET_FILE_DIR:vmt-lightpreview>/$<TARGET_FILE_NAME:Qt6::Widgets>
+        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::Gui> $<TARGET_FILE_DIR:vmt-lightpreview>/$<TARGET_FILE_NAME:Qt6::Gui>
+        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::OpenGL> $<TARGET_FILE_DIR:vmt-lightpreview>/$<TARGET_FILE_NAME:Qt6::OpenGL>
+        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::OpenGLWidgets> $<TARGET_FILE_DIR:vmt-lightpreview>/$<TARGET_FILE_NAME:Qt6::OpenGLWidgets>
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:vmt-lightpreview>/plugins/platforms
+        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin> $<TARGET_FILE_DIR:vmt-lightpreview>/plugins/platforms/$<TARGET_FILE_NAME:Qt6::QWindowsIntegrationPlugin>
     )
 
     # HACK: copy .dll dependencies
-    add_custom_command(TARGET lightpreview POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:embree>"   "$<TARGET_FILE_DIR:lightpreview>"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbb>" "$<TARGET_FILE_DIR:lightpreview>"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbbmalloc>" "$<TARGET_FILE_DIR:lightpreview>"
+    add_custom_command(TARGET vmt-lightpreview POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:embree>"   "$<TARGET_FILE_DIR:vmt-lightpreview>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbb>" "$<TARGET_FILE_DIR:vmt-lightpreview>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:TBB::tbbmalloc>" "$<TARGET_FILE_DIR:vmt-lightpreview>"
             )
     if (NOT EMBREE_TBB_DLL STREQUAL EMBREE_TBB_DLL-NOTFOUND)
-        add_custom_command(TARGET lightpreview POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EMBREE_TBB_DLL}" "$<TARGET_FILE_DIR:lightpreview>")
+        add_custom_command(TARGET vmt-lightpreview POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EMBREE_TBB_DLL}" "$<TARGET_FILE_DIR:vmt-lightpreview>")
     endif()
 endif()
 
-copy_mingw_dlls(lightpreview)
-add_loader_path_to_rpath(lightpreview)
+copy_mingw_dlls(vmt-lightpreview)
+add_loader_path_to_rpath(vmt-lightpreview)
 
 # Install Qt DLL's
 if (WIN32)
@@ -111,23 +111,23 @@ function(apple_install_lib SRC_TARGET_NAME DEST_PATH)
 endfunction()
 
 if (APPLE)
-    apple_install_lib(TBB::tbb "$<TARGET_FILE_DIR:lightpreview>")
-    apple_install_lib(TBB::tbbmalloc "$<TARGET_FILE_DIR:lightpreview>")
-    apple_install_lib(embree "$<TARGET_FILE_DIR:lightpreview>")
+    apple_install_lib(TBB::tbb "$<TARGET_FILE_DIR:vmt-lightpreview>")
+    apple_install_lib(TBB::tbbmalloc "$<TARGET_FILE_DIR:vmt-lightpreview>")
+    apple_install_lib(embree "$<TARGET_FILE_DIR:vmt-lightpreview>")
 
     # TODO: this should be replaced with macdeployqt
-    apple_install_lib(Qt6::Core "$<TARGET_FILE_DIR:lightpreview>/QtCore.framework/Versions/A")
-    apple_install_lib(Qt6::Widgets "$<TARGET_FILE_DIR:lightpreview>/QtWidgets.framework/Versions/A")
-    apple_install_lib(Qt6::Gui "$<TARGET_FILE_DIR:lightpreview>/QtGui.framework/Versions/A")
-    apple_install_lib(Qt6::OpenGL "$<TARGET_FILE_DIR:lightpreview>/QtOpenGL.framework/Versions/A")
-    apple_install_lib(Qt6::OpenGLWidgets "$<TARGET_FILE_DIR:lightpreview>/QtOpenGLWidgets.framework/Versions/A")
-    apple_install_lib(Qt6::QCocoaIntegrationPlugin "$<TARGET_FILE_DIR:lightpreview>/platforms")
+    apple_install_lib(Qt6::Core "$<TARGET_FILE_DIR:vmt-lightpreview>/QtCore.framework/Versions/A")
+    apple_install_lib(Qt6::Widgets "$<TARGET_FILE_DIR:vmt-lightpreview>/QtWidgets.framework/Versions/A")
+    apple_install_lib(Qt6::Gui "$<TARGET_FILE_DIR:vmt-lightpreview>/QtGui.framework/Versions/A")
+    apple_install_lib(Qt6::OpenGL "$<TARGET_FILE_DIR:vmt-lightpreview>/QtOpenGL.framework/Versions/A")
+    apple_install_lib(Qt6::OpenGLWidgets "$<TARGET_FILE_DIR:vmt-lightpreview>/QtOpenGLWidgets.framework/Versions/A")
+    apple_install_lib(Qt6::QCocoaIntegrationPlugin "$<TARGET_FILE_DIR:vmt-lightpreview>/platforms")
 
     # these are required by QCocoaIntegrationPlugin
     find_package(Qt6DBus REQUIRED)
     find_package(Qt6PrintSupport REQUIRED)
-    apple_install_lib(Qt6::PrintSupport "$<TARGET_FILE_DIR:lightpreview>/QtPrintSupport.framework/Versions/A")
-    apple_install_lib(Qt6::DBus "$<TARGET_FILE_DIR:lightpreview>/QtDBus.framework/Versions/A")
+    apple_install_lib(Qt6::PrintSupport "$<TARGET_FILE_DIR:vmt-lightpreview>/QtPrintSupport.framework/Versions/A")
+    apple_install_lib(Qt6::DBus "$<TARGET_FILE_DIR:vmt-lightpreview>/QtDBus.framework/Versions/A")
 endif ()
 
-install(TARGETS lightpreview RUNTIME DESTINATION . BUNDLE DESTINATION .)
+install(TARGETS vmt-lightpreview RUNTIME DESTINATION . BUNDLE DESTINATION .)

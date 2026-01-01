@@ -1,4 +1,4 @@
-=========
+﻿=========
 vmt-light
 =========
 
@@ -23,7 +23,7 @@ the new light data upon completion, overwriting any existing lighting data.
 Options
 =======
 
-.. program:: light
+.. program:: vmt-light
 
 Note, any of the Worldspawn Keys listed in the next section can be
 supplied as command-line options, which will override any setting in

@@ -1,10 +1,10 @@
-# VibeyMapTools Wiki
+﻿# VibeyMapTools Wiki 📚✨
 
-Welcome to the VibeyMapTools documentation hub. This wiki provides an overview of the project and links to detailed documentation.
+Welcome to the VibeyMapTools documentation hub. This page is your neon sign to the docs, the quick-start spells, and the "wait what does that flag do?" rabbit hole. 🐇🔮
 
 ---
 
-## 📚 Documentation Index
+## 🧭 Documentation Index
 
 ### Getting Started
 | Document | Description |
@@ -21,11 +21,36 @@ Welcome to the VibeyMapTools documentation hub. This wiki provides an overview o
 | **vmt-light** | [light.rst](docs/light.rst) | Light compiler - calculates lightmaps |
 | **vmt-bspinfo** | [bspinfo.rst](docs/bspinfo.rst) | BSP information utility |
 | **vmt-bsputil** | [bsputil.rst](docs/bsputil.rst) | BSP manipulation utility |
-| **maputil** | [maputil.rst](docs/maputil.rst) | Map file Lua scripting tool |
-| **lightpreview** | [lightpreview.rst](docs/lightpreview.rst) | Real-time lighting preview (experimental) |
+| **vmt-maputil** | [maputil.rst](docs/maputil.rst) | Map file Lua scripting tool |
+| **vmt-lightpreview** | [lightpreview.rst](docs/lightpreview.rst) | Real-time lighting preview (experimental) |
 
 ### Full Documentation
-The complete documentation is available in the [`docs/`](docs/) folder and at: **[github.com/themuffinator/VibeyMapTools](https://github.com/themuffinator/VibeyMapTools)**
+The complete documentation is available in the [`docs/`](docs/) folder and at **github.com/themuffinator/VibeyMapTools**.
+
+---
+
+## 🔁 Coming from ericw-tools? TL;DR ✨
+
+Same workflow, new name, bonus polish. The big changes are mostly naming + release tooling:
+
+- `qbsp/vis/light` -> `vmt-bsp/vmt-vis/vmt-light`
+- All binaries are `vmt-` prefixed to differentiate from ericw-tools (including `vmt-maputil` and `vmt-lightpreview`)
+- CI-built packages + semantic versioning
+- Quake II + Remaster support is unchanged (`-q2bsp`, `-lightgrid`, `-world_units_per_luxel`)
+- Upstream docs still apply: https://ericwa.github.io/ericw-tools/ 📚
+
+**Rename cheat sheet (old -> new):**
+
+| ericw-tools | VibeyMapTools |
+|-------------|---------------|
+| `qbsp` | `vmt-bsp` |
+| `vis` | `vmt-vis` |
+| `light` | `vmt-light` |
+| `bspinfo` | `vmt-bspinfo` |
+| `bsputil` | `vmt-bsputil` |
+| `maputil` | `vmt-maputil` |
+| `lightpreview` | `vmt-lightpreview` |
+
 
 ---
 
@@ -50,27 +75,30 @@ vmt-light -gpu -extra4 -denoise mymap.bsp
 
 ---
 
-## ✨ Key Features
+## ✨ Feature Snacks
 
-### GPU Raytracing (`-gpu`)
+### GPU Raytracing (`-gpu`) ⚡
 Leverages NVIDIA OptiX for massively parallel raytracing. Requires:
 - NVIDIA GPU with RTX cores
 - CUDA Toolkit
 - OptiX SDK 7.x
 
-### AI Denoising (`-denoise`)
-Uses Intel Open Image Denoise (OIDN) to clean up stochastic noise in lightmaps. Best used with high sample counts or bounce lighting.
+### AI Denoising (`-denoise`) 🤖
+Uses Intel Open Image Denoise (OIDN) to clean up stochastic noise in lightmaps. Best with high sample counts or bounce lighting.
 
-### Bounce Lighting (`-bounce N`)
+### Incremental Lighting (`-incremental`) 🔁
+Keeps caches so you can relight fast without reprocessing everything.
+
+### Bounce Lighting (`-bounce N`) 💡
 Simulates indirect illumination by bouncing light off surfaces. Higher values = more realistic but slower.
 
-### HDR Lightmaps (`-lithdr`)
-Generates high dynamic range lightmaps in LIGHTING_E5BGR9 format for engines that support it.
+### HDR Lightmaps (`-lithdr`) 🌈
+Generates high dynamic range lightmaps for engines that support it.
 
-### Surface Lights (`_surface`)
-Turn any texture into an emissive light source by specifying the texture name in a light entity's `_surface` key.
+### Surface Lights (`_surface`) 🌟
+Turn any texture into an emissive light source by naming it in a light entity's `_surface` key.
 
-### Stochastic Sampling (`-stochastic`)
+### Stochastic Sampling (`-stochastic`) 🎲
 Randomized sampling for complex scenes - trades some noise for significantly faster compile times.
 
 ---
@@ -80,14 +108,14 @@ Randomized sampling for complex scenes - trades some noise for significantly fas
 | Game | Status |
 |------|--------|
 | **Quake** | ✅ Full support |
-| **Quake II** | ✅ Full support (use `-q2bsp`) |
+| **Quake II** | ✅ Full support (`-q2bsp`) |
 | **Quake II Remaster** | ✅ Supported (`-lightgrid`, etc.) |
 | **Hexen II** | ✅ Supported |
-| **Half-Life** | ⚠️ Experimental |
+| **Half-Life** | 🧪 Experimental |
 
 ---
 
-## 🔧 Common Workflows
+## 🧪 Common Workflows
 
 ### For Quake Mappers
 ```bash
@@ -118,7 +146,7 @@ vmt-light -lightgrid -world_units_per_luxel 8 mymap.bsp
 
 ---
 
-## 📖 Additional Resources
+## 🛰️ Additional Resources
 
 - **Issue Tracker**: Report bugs and request features on GitHub
 - **Discord**: Join the Quake Mapping Discord for community support
@@ -126,7 +154,7 @@ vmt-light -lightgrid -world_units_per_luxel 8 mymap.bsp
 
 ---
 
-## 📜 License
+## 🧾 License
 
 VibeyMapTools is licensed under the [GNU General Public License v3](COPYING).
 
