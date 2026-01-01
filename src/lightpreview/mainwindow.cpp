@@ -52,13 +52,16 @@ See file, 'COPYING', for details.
 #include <QThread>
 #include <QApplication>
 #include <QDesktopServices>
+#include <optional>
 
 #include <common/bspfile.hh>
 #include <common/litfile.hh>
+#include <common/bsputils.hh>
 #include <qbsp/qbsp.hh>
 #include <vis/vis.hh>
 #include <light/light.hh>
 #include <common/bspinfo.hh>
+#include <fmt/core.h>
 #include <fmt/chrono.h>
 #include <QMessageBox>
 
@@ -285,6 +288,8 @@ void MainWindow::createPropertiesSidebar()
     auto *drawportals = new QCheckBox(tr("Draw Portals (PRT)"));
     auto *drawleak = new QCheckBox(tr("Draw Leak (PTS/LIN)"));
     auto *drawlightgrid = new QCheckBox(tr("Draw Lightgrid"));
+    show_click_ray = new QCheckBox(tr("Show Selection Ray"));
+    show_hud = new QCheckBox(tr("HUD Overlay"));
 
     auto *showtris = new QCheckBox(tr("Show Tris"));
     auto *showtris_seethrough = new QCheckBox(tr("Show Tris (See Through)"));
@@ -316,6 +321,8 @@ void MainWindow::createPropertiesSidebar()
     formLayout->addRow(drawportals);
     formLayout->addRow(drawleak);
     formLayout->addRow(drawlightgrid);
+    formLayout->addRow(show_click_ray);
+    formLayout->addRow(show_hud);
     formLayout->addRow(showtris);
     formLayout->addRow(showtris_seethrough);
     formLayout->addRow(visculling);
@@ -381,6 +388,10 @@ void MainWindow::createPropertiesSidebar()
     if (nearest->isChecked()) {
         glView->setMagFilter(QOpenGLTexture::Nearest);
     }
+    show_click_ray->setChecked(s.value("show_click_ray").toBool());
+    glView->setShowClickRay(show_click_ray->isChecked());
+    show_hud->setChecked(s.value("show_hud", true).toBool());
+    glView->setShowHud(show_hud->isChecked());
 
     // setup event handlers
 
@@ -419,12 +430,15 @@ void MainWindow::createPropertiesSidebar()
     connect(drawleak, &QAbstractButton::toggled, this, [this](bool checked) { glView->setDrawLeak(checked); });
     connect(
         drawlightgrid, &QAbstractButton::toggled, this, [this](bool checked) { glView->setDrawLightgrid(checked); });
+    connect(show_click_ray, &QAbstractButton::toggled, this, [this](bool checked) { glView->setShowClickRay(checked); });
+    connect(show_hud, &QAbstractButton::toggled, this, [this](bool checked) { glView->setShowHud(checked); });
     connect(keepposition, &QAbstractButton::toggled, this, [this](bool checked) { glView->setKeepOrigin(checked); });
     connect(nearest, &QAbstractButton::toggled, this,
         [this](bool checked) { glView->setMagFilter(checked ? QOpenGLTexture::Nearest : QOpenGLTexture::Linear); });
     connect(draw_opaque, &QAbstractButton::toggled, this,
         [this](bool checked) { glView->setDrawTranslucencyAsOpaque(checked); });
     connect(glView, &GLView::cameraMoved, this, &MainWindow::displayCameraPositionInfo);
+    connect(glView, &GLView::selectedFaceChanged, this, &MainWindow::displaySelectedFaceInfo);
     connect(show_bmodels, &QAbstractButton::toggled, this, [this](bool checked) { glView->setShowBmodels(checked); });
     connect(brightnessSlider, &QAbstractSlider::valueChanged, this, [this, brightnessLabel](int value) {
         float brightness = value / 10.0f;
@@ -531,7 +545,9 @@ void MainWindow::createOutputLog()
 void MainWindow::createStatusBar()
 {
     m_cameraStatus = new QLabel();
+    m_selectionStatus = new QLabel();
     statusBar()->addWidget(m_cameraStatus);
+    statusBar()->addPermanentWidget(m_selectionStatus);
 }
 
 /**
@@ -638,6 +654,77 @@ void MainWindow::setupMenu()
         }
     });
 
+    auto *selectionMenu = viewMenu->addMenu(tr("Selection"));
+    m_actionCopySelectedFace = selectionMenu->addAction(tr("Copy Selected Face Info"), this, [this]() {
+        if (m_selectedFaceInfo.empty())
+            return;
+        QClipboard *clipboard = QGuiApplication::clipboard();
+        clipboard->setText(QString::fromStdString(m_selectedFaceInfo));
+    });
+    m_actionCopySelectedTexture = selectionMenu->addAction(tr("Copy Selected Texture"), this, [this]() {
+        if (m_selectedTexture.empty())
+            return;
+        QClipboard *clipboard = QGuiApplication::clipboard();
+        clipboard->setText(QString::fromStdString(m_selectedTexture));
+    });
+    selectionMenu->addSeparator();
+    m_actionFocusSelectedFace = selectionMenu->addAction(tr("Focus Camera on Selected Face"), this, [this]() {
+        const auto *bsp = std::get_if<mbsp_t>(&m_bspdata.bsp);
+        if (!bsp || m_selectedFaceIndex < 0 || m_selectedFaceIndex >= static_cast<int>(bsp->dfaces.size()))
+            return;
+        const auto &face = bsp->dfaces.at(m_selectedFaceIndex);
+        const qvec3f centroid = Face_Centroid(bsp, &face);
+        const qvec3d normal = Face_Normal(bsp, &face);
+        const qvec3d camera_pos = qvec3d{centroid[0], centroid[1], centroid[2]} + normal * 32.0;
+        const qvec3d forward = normal * -1.0;
+        glView->setCamera(camera_pos, forward);
+    });
+    m_actionFocusSelectedLeaf = selectionMenu->addAction(tr("Focus Camera on Selected Leaf"), this, [this]() {
+        const auto *bsp = std::get_if<mbsp_t>(&m_bspdata.bsp);
+        if (!bsp || m_selectedFaceIndex < 0 || m_selectedFaceIndex >= static_cast<int>(bsp->dfaces.size()))
+            return;
+        const auto &face = bsp->dfaces.at(m_selectedFaceIndex);
+        const qvec3f centroid = Face_Centroid(bsp, &face);
+        const qvec3d centroid_d{centroid[0], centroid[1], centroid[2]};
+        const mleaf_t *leaf = BSP_FindLeafAtPoint(bsp, &bsp->dmodels[0], centroid_d);
+        if (!leaf)
+            return;
+        const qvec3f leaf_center = (leaf->mins + leaf->maxs) * 0.5f;
+        glView->setCamera(qvec3d{leaf_center[0], leaf_center[1], leaf_center[2]});
+    });
+    selectionMenu->addSeparator();
+    m_actionSoloSelectedTexture = selectionMenu->addAction(tr("Solo Selected Texture"));
+    m_actionSoloSelectedTexture->setCheckable(true);
+    m_actionSoloSelectedTexture->setShortcut(QKeySequence("T"));
+    connect(m_actionSoloSelectedTexture, &QAction::toggled, this, [this](bool checked) {
+        if (!checked) {
+            glView->setTextureFilter(std::nullopt);
+            return;
+        }
+        if (m_selectedTexture.empty()) {
+            m_actionSoloSelectedTexture->blockSignals(true);
+            m_actionSoloSelectedTexture->setChecked(false);
+            m_actionSoloSelectedTexture->blockSignals(false);
+            glView->setTextureFilter(std::nullopt);
+            return;
+        }
+        glView->setTextureFilter(std::optional<std::string>{m_selectedTexture});
+    });
+    m_actionClearSelection = selectionMenu->addAction(tr("Clear Selection"), this, [this]() { glView->clearSelection(); });
+
+    if (m_actionCopySelectedFace)
+        m_actionCopySelectedFace->setEnabled(false);
+    if (m_actionCopySelectedTexture)
+        m_actionCopySelectedTexture->setEnabled(false);
+    if (m_actionFocusSelectedFace)
+        m_actionFocusSelectedFace->setEnabled(false);
+    if (m_actionFocusSelectedLeaf)
+        m_actionFocusSelectedLeaf->setEnabled(false);
+    if (m_actionSoloSelectedTexture)
+        m_actionSoloSelectedTexture->setEnabled(false);
+    if (m_actionClearSelection)
+        m_actionClearSelection->setEnabled(false);
+
     // help menu
 
     auto *helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -731,15 +818,25 @@ void MainWindow::loadFile(const QString &file)
     m_watcher = new QFileSystemWatcher(this);
     m_fileSize = -1;
 
-    // start watching it
+    // start watching it and related outputs
     qDebug() << "adding path: " << m_watcher->addPath(file);
 
-    // Also watch the .lit file
-    QString litFile = QFileInfo(file).path() + "/" + QFileInfo(file).completeBaseName() + ".lit";
-    if (QFileInfo::exists(litFile)) {
-        qDebug() << "adding lit path: " << m_watcher->addPath(litFile);
-    } else {
-        qDebug() << "lit file not found: " << litFile;
+    auto addWatchPath = [this](const QString &path) {
+        if (QFileInfo::exists(path)) {
+            qDebug() << "adding path: " << m_watcher->addPath(path);
+        } else {
+            qDebug() << "file not found: " << path;
+        }
+    };
+
+    QFileInfo fileInfo(file);
+    const QString basePath = fileInfo.path() + "/" + fileInfo.completeBaseName();
+    addWatchPath(basePath + ".lit");
+    addWatchPath(basePath + ".prt");
+    addWatchPath(basePath + ".pts");
+    addWatchPath(basePath + ".lin");
+    if (fileInfo.suffix().compare("map", Qt::CaseInsensitive) == 0) {
+        addWatchPath(basePath + ".bsp");
     }
 
     connect(m_watcher, &QFileSystemWatcher::fileChanged, this, [&](const QString &path) {
@@ -1079,6 +1176,8 @@ void MainWindow::loadFileInternal(const QString &file, bool is_reload)
     s.setValue("vis_options", vis_options->text());
     s.setValue("light_options", light_options->text());
     s.setValue("nearest", nearest->isChecked());
+    s.setValue("show_click_ray", show_click_ray ? show_click_ray->isChecked() : false);
+    s.setValue("show_hud", show_hud ? show_hud->isChecked() : true);
 
     // update title bar
     setWindowFilePath(file);
@@ -1117,4 +1216,94 @@ void MainWindow::displayCameraPositionInfo()
     std::string cpp_str = fmt::format("pos ({}) forward ({}) contents ({}) area ({})", point, forward, leaf_type, area);
 
     m_cameraStatus->setText(QString::fromStdString(cpp_str));
+}
+
+void MainWindow::displaySelectedFaceInfo(int faceIndex)
+{
+    if (!m_selectionStatus) {
+        return;
+    }
+
+    const auto *bsp = std::get_if<mbsp_t>(&m_bspdata.bsp);
+    if (!bsp || faceIndex < 0 || faceIndex >= static_cast<int>(bsp->dfaces.size())) {
+        m_selectionStatus->clear();
+        m_selectedFaceIndex = -1;
+        m_selectedFaceInfo.clear();
+        m_selectedTexture.clear();
+        if (m_actionCopySelectedFace)
+            m_actionCopySelectedFace->setEnabled(false);
+        if (m_actionCopySelectedTexture)
+            m_actionCopySelectedTexture->setEnabled(false);
+        if (m_actionFocusSelectedFace)
+            m_actionFocusSelectedFace->setEnabled(false);
+        if (m_actionFocusSelectedLeaf)
+            m_actionFocusSelectedLeaf->setEnabled(false);
+        if (m_actionSoloSelectedTexture) {
+            m_actionSoloSelectedTexture->setChecked(false);
+            m_actionSoloSelectedTexture->setEnabled(false);
+        }
+        if (m_actionClearSelection)
+            m_actionClearSelection->setEnabled(false);
+        return;
+    }
+
+    const auto &face = bsp->dfaces.at(faceIndex);
+    const std::string texname = Face_TextureName(bsp, &face);
+
+    std::string style_list;
+    for (uint8_t style : face.styles) {
+        if (style == INVALID_LIGHTSTYLE_OLD) {
+            continue;
+        }
+        if (!style_list.empty()) {
+            style_list += ",";
+        }
+        style_list += fmt::format("{}", style);
+    }
+    if (style_list.empty()) {
+        style_list = "none";
+    }
+
+    int model_index = 0;
+    for (int mi = 0; mi < static_cast<int>(bsp->dmodels.size()); ++mi) {
+        const auto &model = bsp->dmodels[mi];
+        if (faceIndex >= model.firstface && faceIndex < model.firstface + model.numfaces) {
+            model_index = mi;
+            break;
+        }
+    }
+
+    const qvec3f centroid = Face_Centroid(bsp, &face);
+    const qvec3d centroid_d{centroid[0], centroid[1], centroid[2]};
+    const mleaf_t *leaf = BSP_FindLeafAtPoint(bsp, &bsp->dmodels[0], centroid_d);
+    int leaf_index = -1;
+    int area = -1;
+    if (leaf) {
+        leaf_index = static_cast<int>(leaf - bsp->dleafs.data());
+        area = leaf->area;
+    }
+
+    m_selectedFaceIndex = faceIndex;
+    m_selectedTexture = texname;
+    m_selectedFaceInfo = fmt::format("face {} tex \"{}\" styles [{}] model {} leaf {} area {}", faceIndex, texname,
+        style_list, model_index, leaf_index, area);
+
+    m_selectionStatus->setText(QString::fromStdString(m_selectedFaceInfo));
+
+    if (m_actionCopySelectedFace)
+        m_actionCopySelectedFace->setEnabled(true);
+    if (m_actionCopySelectedTexture)
+        m_actionCopySelectedTexture->setEnabled(true);
+    if (m_actionFocusSelectedFace)
+        m_actionFocusSelectedFace->setEnabled(true);
+    if (m_actionFocusSelectedLeaf)
+        m_actionFocusSelectedLeaf->setEnabled(true);
+    if (m_actionSoloSelectedTexture)
+        m_actionSoloSelectedTexture->setEnabled(true);
+    if (m_actionClearSelection)
+        m_actionClearSelection->setEnabled(true);
+
+    if (m_actionSoloSelectedTexture && m_actionSoloSelectedTexture->isChecked()) {
+        glView->setTextureFilter(std::optional<std::string>{m_selectedTexture});
+    }
 }

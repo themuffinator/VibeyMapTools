@@ -79,6 +79,16 @@ private:
     ETLogTab m_activeLogTab = ETLogTab::TAB_LIGHTPREVIEW;
     QThread *m_compileThread = nullptr;
     QLabel *m_cameraStatus = nullptr;
+    QLabel *m_selectionStatus = nullptr;
+    int m_selectedFaceIndex = -1;
+    std::string m_selectedFaceInfo;
+    std::string m_selectedTexture;
+    QAction *m_actionSoloSelectedTexture = nullptr;
+    QAction *m_actionCopySelectedFace = nullptr;
+    QAction *m_actionCopySelectedTexture = nullptr;
+    QAction *m_actionFocusSelectedFace = nullptr;
+    QAction *m_actionFocusSelectedLeaf = nullptr;
+    QAction *m_actionClearSelection = nullptr;
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
@@ -114,6 +124,7 @@ private:
     void loadFile(const QString &file);
     void loadFileInternal(const QString &file, bool is_reload);
     void displayCameraPositionInfo();
+    void displaySelectedFaceInfo(int faceIndex);
 
 private:
     GLView *glView = nullptr;
@@ -124,6 +135,8 @@ private:
     QCheckBox *nearest = nullptr;
     QCheckBox *bspx_decoupled_lm = nullptr;
     QCheckBox *bspx_normals = nullptr;
+    QCheckBox *show_click_ray = nullptr;
+    QCheckBox *show_hud = nullptr;
 
     QLineEdit *common_options = nullptr;
     QLineEdit *qbsp_options = nullptr;

@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing to VibeyMapTools! This document provides guidelines for contributing.
 
+Coming from ericw-tools? The flow is the same, but release automation lives in GitHub Actions and binaries are prefixed with `vmt-`.
+
 ## Getting Started
 
 1. Fork the repository
@@ -61,6 +63,29 @@ Example: `feat: add support for PBR lightmaps`
 
 - Open a Discussion on GitHub
 - Check the [WIKI.md](WIKI.md) for documentation
+
+## Release Process (Maintainers)
+
+This is for contributors with release privileges.
+
+1. Update `VERSION` with the next release number (e.g., `2.1.1`).
+2. Update `CHANGELOG.md` and `docs/changelog.rst` with user-visible changes.
+3. Build and test locally:
+   - `cmake -B build -DCMAKE_BUILD_TYPE=Release`
+   - `cmake --build build --config Release`
+   - `ctest --test-dir build --output-on-failure --build-config Release`
+4. Commit the changes:
+   - `git add VERSION CHANGELOG.md docs/changelog.rst`
+   - `git commit -m "chore: release vX.Y.Z"`
+5. Tag the release and push:
+   - `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
+   - `git push origin main`
+   - `git push origin vX.Y.Z`
+
+GitHub Actions will build packages and attach them to the release. You can create a GitHub Release
+manually (Publish Release) or rely on the workflow to draft it on tag push.
+
+For more detailed steps and packaging notes, see the release section in [WIKI.md](WIKI.md).
 
 ## License
 

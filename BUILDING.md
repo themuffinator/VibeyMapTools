@@ -111,6 +111,37 @@ If CMake cannot find them, pass the package config paths:
 cmake .. -Dembree_DIR=/path/to/embree/lib/cmake/embree-4.x -DTBB_DIR=/path/to/tbb/lib/cmake/tbb
 ```
 
+### Qt6 (vmt-preview GUI) 🪟
+
+`vmt-preview` is built when Qt6 is available and `ENABLE_LIGHTPREVIEW=ON`.
+
+**Required components**
+- Qt6 Core, Gui, Widgets, OpenGL, OpenGLWidgets
+
+**Windows (Qt Online Installer)**
+1) Install Qt 6.x (MSVC build) with the components above.
+2) Point CMake at the Qt install:
+
+```powershell
+cmake -B build -DENABLE_LIGHTPREVIEW=ON -DCMAKE_PREFIX_PATH="C:\Qt\6.6.2\msvc2019_64"
+```
+
+**Linux (Debian/Ubuntu)**
+```bash
+sudo apt install qt6-base-dev qt6-base-dev-tools libgl1-mesa-dev
+cmake -B build -DENABLE_LIGHTPREVIEW=ON
+```
+
+**macOS (Homebrew)**
+```bash
+brew install qt@6
+cmake -B build -DENABLE_LIGHTPREVIEW=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
+```
+
+**Verification**
+In CMake output, ensure Qt6 is detected and `ENABLE_LIGHTPREVIEW` remains ON. The
+`vmt-preview` binary should appear in `build/` after a successful build.
+
 ### NVIDIA OptiX (GPU Raytracing) ?
 
 This enables the `-gpu` path in `vmt-light` (OptiX-backed raytracing). If OptiX isn't found, `-gpu`

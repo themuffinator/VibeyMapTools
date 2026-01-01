@@ -35,6 +35,7 @@ See file, 'COPYING', for details.
 #include <QStandardPaths>
 #include <QDateTime>
 #include <QMessageBox>
+#include <QPainter>
 
 #include <common/decompile.hh>
 #include <common/bspfile.hh>
@@ -596,7 +597,20 @@ void GLView::updateFaceVisibility(const std::array<QVector4D, 4> &frustum)
         }
     }
 
-    setFaceVisibilityArray(face_flags.data());
+    if (m_textureFilter && !m_textureFilter->empty()) {
+        std::vector<uint8_t> filtered_flags(face_flags.size(), 0);
+        auto it = m_facesByTexture.find(*m_textureFilter);
+        if (it != m_facesByTexture.end()) {
+            for (int face_index : it->second) {
+                if (face_index >= 0 && face_index < static_cast<int>(face_flags.size())) {
+                    filtered_flags[face_index] = face_flags[face_index];
+                }
+            }
+        }
+        setFaceVisibilityArray(filtered_flags.data());
+    } else {
+        setFaceVisibilityArray(face_flags.data());
+    }
 }
 
 bool GLView::shouldLiveUpdate() const
@@ -980,7 +994,7 @@ void GLView::paintGL()
     }
 
     // render mouse clicks
-    if (m_hasClick && false) {
+    if (m_hasClick && m_showClickRay) {
         m_program_simple->bind();
         m_program_simple->setUniformValue(m_program_simple_color_location, QVector4D{1.0, 1.0, 1.0, 1.0});
         m_program_simple->setUniformValue(m_program_simple_mvp_location, MVP);
@@ -1018,9 +1032,9 @@ void GLView::paintGL()
         glEnable(GL_PRIMITIVE_RESTART);
         glPrimitiveRestartIndex((GLuint)-1);
 
-        m_program_wireframe->setUniformValue(m_program_simple_color_location, 1.0f, 0.4f, 0.4f, 0.2f);
+        m_program_simple->setUniformValue(m_program_simple_color_location, 1.0f, 0.4f, 0.4f, 0.2f);
         glDrawElements(GL_TRIANGLE_FAN, num_portal_indices, GL_UNSIGNED_INT, 0);
-        m_program_wireframe->setUniformValue(m_program_simple_color_location, 1.0f, 1.f, 1.f, 0.2f);
+        m_program_simple->setUniformValue(m_program_simple_color_location, 1.0f, 1.f, 1.f, 0.2f);
         glDrawElements(GL_LINE_LOOP, num_portal_indices, GL_UNSIGNED_INT, 0);
 
         glDisable(GL_PRIMITIVE_RESTART);
@@ -1071,6 +1085,56 @@ void GLView::paintGL()
         }
 
         m_program_lightgrid->release();
+    }
+
+    if (m_showHud) {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::TextAntialiasing, true);
+
+        QFont font = painter.font();
+        font.setPointSize(9);
+        painter.setFont(font);
+
+        QStringList lines;
+        lines << QString("Faces: %1").arg(m_totalFaces);
+        lines << QString("Leafs: %1").arg(m_totalLeafs);
+        lines << QString("Models: %1").arg(m_totalModels);
+        lines << QString("Portals: %1").arg(m_portalCount);
+        if (num_leak_points > 0) {
+            lines << QString("Leak points: %1").arg(num_leak_points);
+        }
+        if (m_lightgridSampleCount > 0) {
+            lines << QString("Lightgrid samples: %1").arg(m_lightgridSampleCount);
+        }
+        lines << QString("Vis culling: %1").arg(m_visCulling ? "on" : "off");
+        if (m_textureFilter && !m_textureFilter->empty()) {
+            lines << QString("Texture filter: %1").arg(QString::fromStdString(*m_textureFilter));
+        }
+        if (m_selected_face >= 0) {
+            lines << QString("Selected face: %1").arg(m_selected_face);
+        }
+
+        QFontMetrics metrics(font);
+        int max_width = 0;
+        for (const auto &line : lines) {
+            max_width = std::max(max_width, metrics.horizontalAdvance(line));
+        }
+
+        const int line_height = metrics.height();
+        const int padding = 8;
+        const int x = 10;
+        const int y = 10;
+        const int height = padding * 2 + line_height * lines.size();
+        const int width = padding * 2 + max_width;
+
+        painter.fillRect(QRect(x, y, width, height), QColor(0, 0, 0, 160));
+        painter.setPen(Qt::white);
+
+        int text_y = y + padding + line_height;
+        for (const auto &line : lines) {
+            painter.drawText(x + padding, text_y, line);
+            text_y += line_height;
+        }
     }
 
     if (shouldLiveUpdate()) {
@@ -1193,6 +1257,34 @@ void GLView::setDrawLeak(bool drawleak)
 {
     m_drawLeak = drawleak;
     update();
+}
+
+void GLView::setShowClickRay(bool showclickray)
+{
+    m_showClickRay = showclickray;
+    update();
+}
+
+void GLView::setShowHud(bool showhud)
+{
+    m_showHud = showhud;
+    update();
+}
+
+void GLView::setTextureFilter(const std::optional<std::string> &textureName)
+{
+    m_textureFilter = textureName;
+    update();
+}
+
+void GLView::clearSelection()
+{
+    if (m_selected_face != -1) {
+        m_selected_face = -1;
+        m_hasClick = false;
+        emit selectedFaceChanged(m_selected_face);
+        update();
+    }
 }
 
 void GLView::setLightStyleIntensity(int style_id, int intensity)
@@ -1352,6 +1444,7 @@ void GLView::renderBSP(const QString &file, const mbsp_t &bsp, const bspxentries
 
     // clear old data
     m_spatialindex->clear();
+    m_facesByTexture.clear();
 
     placeholder_texture.reset();
     lightmap_texture.reset();
@@ -1364,6 +1457,8 @@ void GLView::renderBSP(const QString &file, const mbsp_t &bsp, const bspxentries
     m_leakVbo.allocate(0);
     m_indexBuffer.bind();
     m_indexBuffer.allocate(0);
+    m_clickVbo.bind();
+    m_clickVbo.allocate(0);
     m_portalVbo.bind();
     m_portalVbo.allocate(0);
     m_portalIndexBuffer.bind();
@@ -1384,6 +1479,15 @@ void GLView::renderBSP(const QString &file, const mbsp_t &bsp, const bspxentries
 
     num_leak_points = 0;
     num_portal_indices = 0;
+    m_selected_face = -1;
+    m_hasClick = false;
+    emit selectedFaceChanged(m_selected_face);
+
+    m_totalFaces = static_cast<int>(bsp.dfaces.size());
+    m_totalLeafs = static_cast<int>(bsp.dleafs.size());
+    m_totalModels = static_cast<int>(bsp.dmodels.size());
+    m_portalCount = 0;
+    m_lightgridSampleCount = 0;
 
     int32_t highest_depth = 0;
 
@@ -1505,6 +1609,8 @@ void GLView::renderBSP(const QString &file, const mbsp_t &bsp, const bspxentries
             const mtexinfo_t *texinfo = Face_Texinfo(&bsp, &f);
             if (!texinfo)
                 continue; // FIXME: render as checkerboard?
+
+            m_facesByTexture[t].push_back(i);
 
             QOpenGLShaderProgram *program = m_program;
 
@@ -1931,6 +2037,7 @@ void GLView::renderBSP(const QString &file, const mbsp_t &bsp, const bspxentries
         QOpenGLVertexArrayObject::Binder portalVaoBinder(&m_portalVao);
 
         auto prt = LoadPrtFile(portalFile, bsp.loadversion);
+        m_portalCount = static_cast<int>(prt.portals.size());
         std::vector<GLuint> indices;
         std::vector<simple_vertex_t> points;
 
@@ -2049,6 +2156,8 @@ void GLView::renderBSP(const QString &file, const mbsp_t &bsp, const bspxentries
                             if (sample.occluded)
                                 continue;
 
+                            m_lightgridSampleCount++;
+
                             const qvec3f world_pos = leaf.world_pos(octree->header, x, y, z);
 
                             // add cube
@@ -2101,6 +2210,8 @@ void GLView::renderBSP(const QString &file, const mbsp_t &bsp, const bspxentries
 
                                 if (sample.occluded)
                                     continue;
+
+                                m_lightgridSampleCount++;
 
                                 const qvec3f world_pos = leaf.world_pos(lightgrid.header, x, y, z);
 
@@ -2262,17 +2373,24 @@ void GLView::clickFace(QMouseEvent *event)
     // trace a ray
     auto hit = m_spatialindex->trace_ray(qvec3f(ws_a[0], ws_a[1], ws_a[2]), qvec3f(ray_dir[0], ray_dir[1], ray_dir[2]));
 
+    const int previous_selection = m_selected_face;
     if (hit.hit) {
         m_selected_face = *std::any_cast<int>(hit.hitpayload);
     } else {
         m_selected_face = -1;
         m_hasClick = false;
+        if (previous_selection != m_selected_face) {
+            emit selectedFaceChanged(m_selected_face);
+        }
         return;
     }
 
     // upload line segment
 
     makeCurrent();
+    if (m_clickVbo.isCreated()) {
+        m_clickVbo.destroy();
+    }
 
     {
         // record that it's safe to draw
@@ -2292,6 +2410,10 @@ void GLView::clickFace(QMouseEvent *event)
     }
 
     doneCurrent();
+
+    if (previous_selection != m_selected_face) {
+        emit selectedFaceChanged(m_selected_face);
+    }
 }
 
 void GLView::applyMouseMotion()
@@ -2343,6 +2465,12 @@ static keys_t Qt_Key_To_keys_t(int key)
 
 void GLView::keyPressEvent(QKeyEvent *event)
 {
+    if (event->key() == Qt::Key_H) {
+        m_showHud = !m_showHud;
+        update();
+        return;
+    }
+
     keys_t key = Qt_Key_To_keys_t(event->key());
 
     m_keysPressed |= static_cast<uint32_t>(key);

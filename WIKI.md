@@ -146,6 +146,43 @@ vmt-light -lightgrid -world_units_per_luxel 8 mymap.bsp
 
 ---
 
+## 🚀 Release + Packaging (Maintainers)
+
+For contributors with release privileges, here is the end-to-end flow.
+
+**1) Update version + notes**
+- Edit `VERSION` with the next release number (example: `2.1.1`).
+- Update `CHANGELOG.md` and `docs/changelog.rst`.
+
+**2) Build + test locally**
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+ctest --test-dir build --output-on-failure --build-config Release
+```
+
+**3) Create a local package (optional but recommended)**
+```bash
+cmake --build build --target package --config Release
+```
+
+**4) Commit + tag**
+```bash
+git add VERSION CHANGELOG.md docs/changelog.rst
+git commit -m "chore: release vX.Y.Z"
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin main
+git push origin vX.Y.Z
+```
+
+**5) Publish a GitHub Release**
+- Either publish a release on GitHub (using the tag), or
+- Let the tag push create a draft release via GitHub Actions.
+
+The release workflow builds packages on Windows/macOS/Linux and attaches them to the release.
+
+---
+
 ## 🛰️ Additional Resources
 
 - **Issue Tracker**: Report bugs and request features on GitHub

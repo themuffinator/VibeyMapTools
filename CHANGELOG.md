@@ -6,6 +6,19 @@ For the detailed changelog with full technical details, see the [docs/changelog.
 
 ---
 
+## [Unreleased]
+
+### Features
+- **vmt-preview**: HUD overlay with portal/leaf counts, selection info, and lightgrid sample stats
+- **vmt-preview**: Selection tools (copy face/texture info, focus camera on face/leaf, solo selected texture)
+- **vmt-preview**: Auto-reload portal/leak visualizations (.prt/.pts/.lin) and BSP outputs for .map sessions
+- **vmt-preview**: Optional selection ray rendering toggle
+
+### Bug Fixes
+- **vmt-preview**: Fix portal overlay color uniforms being sent to the wrong shader
+
+---
+
 ## [2.1.0] - 2026-01-01
 
 This release continues the VibeyMapTools fork with rebranding and modernization.

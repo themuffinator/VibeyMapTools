@@ -169,9 +169,14 @@ add_subdirectory(src/maputil)
 option(DISABLE_TESTS "Disables Tests" OFF)
 option(DISABLE_DOCS "Disables Docs" OFF)
 option(ENABLE_LIGHTPREVIEW "Enable light preview tool" ON)
+option(ENABLE_BUILDGUI "Enable build GUI tool" ON)
 
 if (ENABLE_LIGHTPREVIEW)
 	add_subdirectory(src/lightpreview)
+endif ()
+
+if (ENABLE_BUILDGUI)
+	add_subdirectory(src/buildgui)
 endif ()
 
 if(NOT DISABLE_TESTS)

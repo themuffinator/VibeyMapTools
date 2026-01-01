@@ -14,6 +14,8 @@ and :doc:`light` with a 3D viewport for visualizing the output in real-time.
 .. note::
 
    This tool is experimental and primarily packaged in the Windows build.
+   Coming from ericw-tools? ``vmt-preview`` is the modernized successor to the
+   classic lightpreview flow, with extra visibility and selection tooling.
 
 Features
 --------
@@ -25,6 +27,18 @@ Features
 * Stats panel with BSP lump sizes
 * Lightgrid visualization (for Q2 remaster maps)
 * Support for .lit file loading
+
+Previews
+--------
+
+The preview panel now covers much more than lightmaps. Enjoy a broader debugging
+toolkit with quick visual feedback. 🎛️✨
+
+* 🧭 **HUD overlay** with faces, leafs, portal counts, vis state, and selection info
+* 🧱 **Portals and leaks**: auto-watch .prt/.pts/.lin and refresh as you iterate
+* 🧲 **Selection ray** to confirm hit tests when clicking geometry
+* 🎯 **Selection tools**: copy face + texture info, focus camera on face/leaf, solo a texture
+* 🌈 **Lightgrid samples** listed in HUD when BSPX lightgrid data is present
 
 Controls
 --------
@@ -40,11 +54,13 @@ Movement
 View Modes
 ~~~~~~~~~~
 
-* :kbd:`Alt-1` — Lightmapped (default)
-* :kbd:`Alt-2` — Lightmap Only
-* :kbd:`Alt-3` — Fullbright
-* :kbd:`Alt-4` — Normals
-* :kbd:`Alt-5` — Flat shading
+* :kbd:`Alt-1` - Lightmapped (default)
+* :kbd:`Alt-2` - Lightmap Only
+* :kbd:`Alt-3` - Fullbright
+* :kbd:`Alt-4` - Normals
+* :kbd:`Alt-5` - Flat shading
+* :kbd:`H` - Toggle HUD overlay (viewport focused)
+* :kbd:`T` - Toggle solo selected texture
 
 
 Usage
@@ -56,6 +72,32 @@ Usage
 
 The tool will automatically compile the map and display it in the viewport.
 Changes to lighting parameters can be previewed interactively.
+
+Qt6 Setup
+---------
+
+`vmt-preview` builds when Qt6 is installed and ``ENABLE_LIGHTPREVIEW=ON``.
+Required Qt6 components: Core, Gui, Widgets, OpenGL, OpenGLWidgets.
+
+Example (Windows, Qt Online Installer):
+
+.. code-block:: powershell
+
+   cmake -B build -DENABLE_LIGHTPREVIEW=ON -DCMAKE_PREFIX_PATH="C:\Qt\6.6.2\msvc2019_64"
+
+Example (macOS, Homebrew):
+
+.. code-block:: bash
+
+   brew install qt@6
+   cmake -B build -DENABLE_LIGHTPREVIEW=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
+
+Example (Linux, Debian/Ubuntu):
+
+.. code-block:: bash
+
+   sudo apt install qt6-base-dev qt6-base-dev-tools libgl1-mesa-dev
+   cmake -B build -DENABLE_LIGHTPREVIEW=ON
 
 
 See Also

@@ -114,10 +114,19 @@ private:
     bool m_drawPortals = false;
     bool m_drawLeak = false;
     bool m_drawLightgrid = false;
+    bool m_showClickRay = false;
+    bool m_showHud = true;
     QOpenGLTexture::Filter m_filter = QOpenGLTexture::Linear;
     bool m_drawTranslucencyAsOpaque = false;
     bool m_showBmodels = true;
     float m_brightness = 0.0f;
+    int m_totalFaces = 0;
+    int m_totalLeafs = 0;
+    int m_totalModels = 0;
+    int m_portalCount = 0;
+    int m_lightgridSampleCount = 0;
+    std::optional<std::string> m_textureFilter;
+    std::unordered_map<std::string, std::vector<int>> m_facesByTexture;
 
     QOpenGLVertexArrayObject m_vao;
     QOpenGLBuffer m_vbo;
@@ -268,6 +277,10 @@ public:
     void setDrawPortals(bool drawportals);
     void setDrawLeak(bool drawleak);
     void setDrawLightgrid(bool drawlightgrid);
+    void setShowClickRay(bool showclickray);
+    void setShowHud(bool showhud);
+    void setTextureFilter(const std::optional<std::string> &textureName);
+    void clearSelection();
     // intensity = 0 to 200
     void setLightStyleIntensity(int style_id, int intensity);
     void setMagFilter(QOpenGLTexture::Filter filter);
@@ -317,6 +330,7 @@ private:
 
 signals:
     void cameraMoved();
+    void selectedFaceChanged(int faceIndex);
 
 public:
     qvec3f cameraPosition() const;
