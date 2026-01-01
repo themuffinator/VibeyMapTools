@@ -6,11 +6,13 @@ For the detailed changelog with full technical details, see the [docs/changelog.
 
 ---
 
-## [2.1.0] - Current
+## [2.1.0] - 2026-01-01
 
 This release continues the VibeyMapTools fork with rebranding and modernization.
 
 ### Features
+- **vmt-light**: Improved Half-Life compatibility and behavior
+- Numerous bug fixes and improvements across the toolchain
 - **vmt-bsp**: Half-Life `!cur_*` current contents support (`CONTENTS_CURRENT_*`)
 
 ### Changed
