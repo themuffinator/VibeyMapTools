@@ -34,3 +34,21 @@ out/
 compile_commands.json
 .ccache/
 *.dSYM/
+
+# Local artifacts
+artifacts/
+embree/
+oneapi-tbb-2021.11.0/
+embree.zip
+tbb.zip
+vcpkg/
+
+# Root output artifacts
+/*.bsp
+/*.bsp.*
+/*.lit
+/*.prt
+/*.log
+/*.content.json
+/*.texinfo.json
+/build_log.txt
