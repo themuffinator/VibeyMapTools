@@ -149,8 +149,6 @@ vmt-light -lightgrid -world_units_per_luxel 8 mymap.bsp
 ## 🛰️ Additional Resources
 
 - **Issue Tracker**: Report bugs and request features on GitHub
-- **Discord**: Join the Quake Mapping Discord for community support
-- **func_msgboard**: Classic Quake mapping community forum
 
 ---
 
