@@ -350,7 +350,7 @@ light_settings::light_settings()
           &experimental_group, "writes both rgb and directions data into the bsp itself"},
       hdr{this, "hdr",
           [&](const std::string &, parser_base_t &, source) {
-              write_litfile |= lightfile_t::lithdr;
+              write_litfile |= lightfile_t::hdr;
               return true;
           },
           &experimental_group, "write .lit file with e5bgr9 data"},
@@ -506,7 +506,7 @@ void light_settings::light_postinitialize(int argc, const char **argv)
         logging::print("BSPX colored light output requested on command line.\n");
     if (write_litfile & lightfile_t::lit2)
         logging::print(".lit (version 2) colored light output requested on command line.\n");
-    if (write_litfile & lightfile_t::lithdr)
+    if (write_litfile & lightfile_t::hdr)
         logging::print(".lit (HDR) light output requested on command line.\n");
     if (write_litfile & lightfile_t::bspxhdr)
         logging::print("BSPX HDR light output requested on command line.\n");
@@ -799,6 +799,22 @@ static void FindModelInfo(const mbsp_t *bsp)
     Q_assert(modelinfo.size() == bsp->dmodels.size());
 }
 
+static void SaveLightmapProgress(bspdata_t *bspdata, const fs::path &source)
+{
+    SaveLightmapSurfaces(bspdata, source);
+
+    if (light_options.litonly.value()) {
+        return;
+    }
+
+    // Write a converted copy so the active lighting data stays in generic format.
+    bspdata_t write_bsp = *bspdata;
+    if (!ConvertBSPFormat(&write_bsp, write_bsp.loadversion)) {
+        Error("Failed to convert BSP for intermediate write");
+    }
+    WriteBSPFile(source, &write_bsp);
+}
+
 /*
  * =============
  *  LightWorld
@@ -883,7 +899,7 @@ static void LightWorld(bspdata_t *bspdata, const fs::path &source, bool forcedsc
 
     // Save progress after direct lighting
     logging::print("Saving progress after direct lighting...\n");
-    SaveLightmapSurfaces(bspdata, source);
+    SaveLightmapProgress(bspdata, source);
 
     if (bouncerequired && !light_options.nolighting.value()) {
 
@@ -909,7 +925,7 @@ static void LightWorld(bspdata_t *bspdata, const fs::path &source, bool forcedsc
 
             // Save progress after each bounce pass
             logging::print("Saving progress after bounce pass {}...\n", i);
-            SaveLightmapSurfaces(bspdata, source);
+            SaveLightmapProgress(bspdata, source);
         }
     }
 

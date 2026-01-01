@@ -642,9 +642,9 @@ void MainWindow::setupMenu()
 
     auto *helpMenu = menuBar()->addMenu(tr("&Help"));
 
-    helpMenu->addAction(tr("&Lightpreview Documentation"), this, []() { OpenHelpFile("lightpreview.html"); });
+    helpMenu->addAction(tr("&Preview Documentation"), this, []() { OpenHelpFile("lightpreview.html"); });
     helpMenu->addAction(tr("&About"), this,
-        [this]() { QMessageBox::about(this, tr("About lightpreview"), tr("VibeyMapTools " VIBEYMAPTOOLS_VERSION)); });
+        [this]() { QMessageBox::about(this, tr("About vmt-preview"), tr("VibeyMapTools " VIBEYMAPTOOLS_VERSION)); });
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
@@ -1082,7 +1082,7 @@ void MainWindow::loadFileInternal(const QString &file, bool is_reload)
 
     // update title bar
     setWindowFilePath(file);
-    setWindowTitle(QFileInfo(file).fileName() + " - lightpreview");
+    setWindowTitle(QFileInfo(file).fileName() + " - vmt-preview");
 
     for (auto &edit : m_outputLogWidget->textEdits()) {
         edit->clear();

@@ -1337,7 +1337,7 @@ void SaveLightmapSurfaces(bspdata_t *bspdata, const fs::path &source)
     bspdata->bspx.entries.erase("LIGHTING_E5BGR9");
 
     // lit/lux files (or their BSPX equivalents)
-    if (light_options.write_litfile & lightfile_t::lithdr) {
+    if (light_options.write_litfile & lightfile_t::hdr) {
         WriteLitFile(bsp, g_ctx->faces_sup, source, LIT_VERSION_E5BGR9, lit_filebase, lux_filebase, hdr_filebase);
     }
     if (light_options.write_litfile & lightfile_t::lit) {

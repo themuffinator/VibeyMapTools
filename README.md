@@ -46,7 +46,7 @@ Formerly ericw-tools, now with extra sparkle ✨🎧🛠️
 <td>Lua scripting for .map workflows</td>
 </tr>
 <tr>
-<td><b>vmt-lightpreview</b></td>
+<td><b>vmt-preview</b></td>
 <td>Realtime lighting preview (Qt)</td>
 </tr>
 </table>
@@ -65,7 +65,7 @@ Same bones, new polish. If you used `qbsp/vis/light` before, your muscle memory 
 | `bspinfo` | `vmt-bspinfo` |
 | `bsputil` | `vmt-bsputil` |
 | `maputil` | `vmt-maputil` |
-| `lightpreview` | `vmt-lightpreview` |
+| `lightpreview` | `vmt-preview` |
 
 **What stayed the same (cozy mode):**
 - Classic compile flow: `bsp -> vis -> light`
@@ -77,6 +77,8 @@ Same bones, new polish. If you used `qbsp/vis/light` before, your muscle memory 
 - `vmt-` prefix on every binary so ericw-tools can live side-by-side 🧹✨
 - Semantic versioning + tag-driven releases with CI-built packages 📦🚀
 - Build metadata + `version.hh` for scripting and diagnostics 🧾🛠️
+- Improved Half-Life support (updated behavior + smoother compatibility) ??
+- Numerous bug fixes and improvements across the toolchain ?????
 
 
 ## 🚀 Quick Start
@@ -97,7 +99,7 @@ vmt-light -gpu -extra4 -bounce 2 -denoise mymap.bsp
 - 🤖 AI denoising with Intel OIDN (`-denoise`)
 - 🎛️ Stochastic sampling (`-stochastic`) for complex scenes
 - 🔁 Incremental lighting (`-incremental`) for fast iteration loops
-- 🌈 HDR lightmaps (`-lithdr`) for engines that support it
+- 🌈 HDR lightmaps (`-hdr`) for engines that support it
 
 ## 📦 Downloads
 
@@ -117,7 +119,7 @@ cd VibeyMapTools && cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-macOS 10.15+ prep: `brew install cmake embree tbb qt@6` (Qt6 only needed for `vmt-lightpreview`)
+macOS 10.15+ prep: `brew install cmake embree tbb qt@6` (Qt6 only needed for `vmt-preview`)
 
 <details>
 <summary><b>Requirements</b></summary>
@@ -128,7 +130,7 @@ macOS 10.15+ prep: `brew install cmake embree tbb qt@6` (Qt6 only needed for `vm
 - Embree 4.x + oneTBB (required for `vmt-light`)
 
 **Optional extras:**
-- Qt6 (for `vmt-lightpreview`)
+- Qt6 (for `vmt-preview`)
 - CUDA + OptiX SDK (GPU raytracing)
 - Intel OIDN (AI denoising)
 

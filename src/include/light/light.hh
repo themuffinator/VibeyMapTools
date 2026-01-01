@@ -183,11 +183,11 @@ enum class lightfile_t
     // write .lit (version 2) file
     lit2 = 4,
     // write .lit (version LIT_VERSION_E5BGR9) file with HDR lighting
-    lithdr = 8,
+    hdr = 8,
     // write LIGHTING_E5BGR9 BSPX lump
     bspxhdr = 16,
     // bitmask for all HDR formats
-    all_hdr_formats = (lithdr | bspxhdr)
+    all_hdr_formats = (hdr | bspxhdr)
 };
 
 enum class luxfile_t

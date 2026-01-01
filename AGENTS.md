@@ -21,7 +21,7 @@ VibeyMapTools (VMT) is a BSP compilation toolset for Quake engine mapping. It is
 | `vmt-bspinfo` | BSP information utility | `src/bspinfo/` |
 | `vmt-bsputil` | BSP manipulation utility | `src/bsputil/` |
 | `vmt-maputil` | Map file Lua scripting | `src/maputil/` |
-| `vmt-lightpreview` | Real-time preview GUI | `src/lightpreview/` |
+| `vmt-preview` | Real-time preview GUI | `src/lightpreview/` |
 
 ## Repository Structure
 
@@ -42,7 +42,7 @@ VibeyMapTools/
 |   |-- bspinfo/    # vmt-bspinfo source
 |   |-- bsputil/    # vmt-bsputil source
 |   |-- maputil/    # vmt-maputil source
-|   `-- lightpreview/ # vmt-lightpreview tool
+|   `-- lightpreview/ # vmt-preview tool
 |-- tests/          # Test suite (maps/ subdirectory contains test .map files)
 |-- CMakeLists.txt
 |-- README.md
@@ -88,7 +88,7 @@ cmake --build build --target package
 ### Dependencies
 
 - **Required**: C++20 compiler, CMake 3.14+, Intel Embree 4.x, oneTBB
-- **Optional**: Qt6 (for vmt-lightpreview), CUDA/OptiX (GPU lighting), Intel OIDN (denoising)
+- **Optional**: Qt6 (for vmt-preview), CUDA/OptiX (GPU lighting), Intel OIDN (denoising)
 
 ## Code Conventions
 
@@ -222,7 +222,7 @@ CMake generates `version.hh` in `build/include` for compile-time version info.
 
 - **Tool naming**: Executables use `vmt-` prefix, but source directories do not (e.g., `src/qbsp/` builds `vmt-bsp`)
 - **Submodules**: Run `git submodule update --init --recursive` after cloning
-- **Qt6**: Only needed for `vmt-lightpreview`, disabled by default
+- **Qt6**: Only needed for `vmt-preview`, disabled by default
 - **Embree/TBB**: Required dependencies; set `embree_DIR`/`TBB_DIR` if CMake cannot find them
 
 ## Contact

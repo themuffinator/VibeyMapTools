@@ -14,7 +14,7 @@ Same workflow, new name, extra toys. If you used ericw-tools, this should feel i
 | `bspinfo` | `vmt-bspinfo` |
 | `bsputil` | `vmt-bsputil` |
 | `maputil` | `vmt-maputil` |
-| `lightpreview` | `vmt-lightpreview` |
+| `lightpreview` | `vmt-preview` |
 
 **Still the same (legacy comfy mode):**
 - Quake II + Remaster support stays put (`-q2bsp`, `-lightgrid`, `-world_units_per_luxel`) 🧠🎮
@@ -39,7 +39,7 @@ Same workflow, new name, extra toys. If you used ericw-tools, this should feel i
 - **Intel Embree 4.x + oneTBB** (required for `vmt-light` builds)
 
 ### Optional extras (spicy toppings)
-- **Qt6** (for `vmt-lightpreview`)
+- **Qt6** (for `vmt-preview`)
 - **NVIDIA CUDA Toolkit** + **OptiX SDK 7.x** (GPU raytracing)
 - **Intel Open Image Denoise (OIDN)** (AI-based lightmap denoising)
 
@@ -82,7 +82,7 @@ cmake --build . --parallel
 ```bash
 # Install dependencies via Homebrew
 brew install cmake embree tbb qt@6
-# Qt6 is only needed for vmt-lightpreview
+# Qt6 is only needed for vmt-preview
 
 # Clone and build
 git clone --recursive https://github.com/themuffinator/VibeyMapTools.git
@@ -111,16 +111,51 @@ If CMake cannot find them, pass the package config paths:
 cmake .. -Dembree_DIR=/path/to/embree/lib/cmake/embree-4.x -DTBB_DIR=/path/to/tbb/lib/cmake/tbb
 ```
 
-### NVIDIA OptiX (GPU Raytracing) ⚡
+### NVIDIA OptiX (GPU Raytracing) ?
 
-1. Install CUDA Toolkit from https://developer.nvidia.com/cuda-toolkit
-2. Download OptiX SDK from https://developer.nvidia.com/designworks/optix/download
-3. Set environment variable:
-   ```powershell
-   $env:OPTIX_ROOT_DIR = "C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.7.0"
-   ```
+This enables the `-gpu` path in `vmt-light` (OptiX-backed raytracing). If OptiX isn't found, `-gpu`
+falls back to Embree and prints "GPU Raytracing compiled out."
 
-CMake will detect OptiX and enable GPU support.
+**1) Install the prerequisites**
+- NVIDIA GPU + recent driver
+- CUDA Toolkit (from https://developer.nvidia.com/cuda-toolkit)
+- OptiX SDK 7.x (from https://developer.nvidia.com/designworks/optix/download)
+
+**2) Set OptiX SDK path**
+Point `OPTIX_ROOT_DIR` at the OptiX SDK root (the directory that contains `include/optix.h`).
+
+Windows (PowerShell):
+```powershell
+$env:OPTIX_ROOT_DIR = "C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.7.0"
+```
+
+Linux/macOS (bash/zsh):
+```bash
+export OPTIX_ROOT_DIR=/opt/optix/OptiX_SDK_7.7.0
+```
+
+**3) Reconfigure + rebuild**
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+```
+
+**4) Verify OptiX is detected**
+In CMake output you should see:
+- `CUDA found. Checking for OptiX...`
+- `OptiX found at <path>`
+
+**5) Run with GPU tracing**
+```bash
+vmt-light -gpu mymap.bsp
+```
+
+If you still see "GPU Raytracing compiled out", OptiX headers were not found. Double-check the
+`OPTIX_ROOT_DIR` value and that `include/optix.h` exists.
+
+**Troubleshooting**
+- If CUDA isn't found, set `CUDAToolkit_ROOT` or install a matching Toolkit version for your GPU driver.
+- If the build system caches a failed OptiX lookup, delete `build/` or clear the CMake cache.
 
 ### Intel OIDN (AI Denoising) 🤖
 
@@ -134,7 +169,7 @@ cmake .. -DOpenImageDenoise_DIR=/path/to/oidn/lib/cmake/OpenImageDenoise
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `ENABLE_LIGHTPREVIEW` | ON | Enable Qt-based `vmt-lightpreview` |
+| `ENABLE_LIGHTPREVIEW` | ON | Enable Qt-based `vmt-preview` |
 | `DISABLE_TESTS` | OFF | Skip building tests |
 | `DISABLE_DOCS` | OFF | Skip docs build |
 | `VIBEYMAPTOOLS_ASAN` | OFF | Enable AddressSanitizer for all targets |
@@ -153,7 +188,7 @@ After a successful build, you'll find in `build/`:
 | `vmt-bspinfo` | BSP information utility |
 | `vmt-bsputil` | BSP manipulation utility |
 | `vmt-maputil` | Lua scripting for .map workflows |
-| `vmt-lightpreview` | Realtime lighting preview (experimental) |
+| `vmt-preview` | Realtime lighting preview (experimental) |
 
 ## ✅ Running Tests
 

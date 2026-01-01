@@ -22,7 +22,7 @@ Welcome to the VibeyMapTools documentation hub. This page is your neon sign to t
 | **vmt-bspinfo** | [bspinfo.rst](docs/bspinfo.rst) | BSP information utility |
 | **vmt-bsputil** | [bsputil.rst](docs/bsputil.rst) | BSP manipulation utility |
 | **vmt-maputil** | [maputil.rst](docs/maputil.rst) | Map file Lua scripting tool |
-| **vmt-lightpreview** | [lightpreview.rst](docs/lightpreview.rst) | Real-time lighting preview (experimental) |
+| **vmt-preview** | [lightpreview.rst](docs/lightpreview.rst) | Real-time lighting preview (experimental) |
 
 ### Full Documentation
 The complete documentation is available in the [`docs/`](docs/) folder and at **github.com/themuffinator/VibeyMapTools**.
@@ -34,7 +34,7 @@ The complete documentation is available in the [`docs/`](docs/) folder and at **
 Same workflow, new name, bonus polish. The big changes are mostly naming + release tooling:
 
 - `qbsp/vis/light` -> `vmt-bsp/vmt-vis/vmt-light`
-- All binaries are `vmt-` prefixed to differentiate from ericw-tools (including `vmt-maputil` and `vmt-lightpreview`)
+- All binaries are `vmt-` prefixed to differentiate from ericw-tools (including `vmt-maputil` and `vmt-preview`)
 - CI-built packages + semantic versioning
 - Quake II + Remaster support is unchanged (`-q2bsp`, `-lightgrid`, `-world_units_per_luxel`)
 - Upstream docs still apply: https://ericwa.github.io/ericw-tools/ 📚
@@ -49,7 +49,7 @@ Same workflow, new name, bonus polish. The big changes are mostly naming + relea
 | `bspinfo` | `vmt-bspinfo` |
 | `bsputil` | `vmt-bsputil` |
 | `maputil` | `vmt-maputil` |
-| `lightpreview` | `vmt-lightpreview` |
+| `lightpreview` | `vmt-preview` |
 
 
 ---
@@ -92,7 +92,7 @@ Keeps caches so you can relight fast without reprocessing everything.
 ### Bounce Lighting (`-bounce N`) 💡
 Simulates indirect illumination by bouncing light off surfaces. Higher values = more realistic but slower.
 
-### HDR Lightmaps (`-lithdr`) 🌈
+### HDR Lightmaps (`-hdr`) 🌈
 Generates high dynamic range lightmaps for engines that support it.
 
 ### Surface Lights (`_surface`) 🌟

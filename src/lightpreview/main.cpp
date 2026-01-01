@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     QSettings::setDefaultFormat(QSettings::IniFormat);
 
     QCoreApplication::setOrganizationName("ericw-tools");
-    QCoreApplication::setApplicationName("lightpreview");
+    QCoreApplication::setApplicationName("vmt-preview");
     // allow non-integer monitor scaling
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
