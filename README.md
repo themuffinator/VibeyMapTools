@@ -131,6 +131,7 @@ GPL v3 — See [COPYING](COPYING)
 
 <div align="center">
 <sub>
-Based on <a href="https://github.com/ericw/ericw-tools">ericw-tools</a> by Eric Wasylishen
+Based on <a href="https://github.com/ericwa/ericw-tools">ericw-tools</a> by Eric Wasylishen
 </sub>
 </div>
+
